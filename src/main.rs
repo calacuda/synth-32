@@ -7,61 +7,32 @@ use esp_idf_svc::hal::i2s::{config, I2sDriver};
 use esp_idf_svc::hal::peripherals;
 use esp_idf_svc::hal::task::thread::ThreadSpawnConfiguration;
 use log::*;
-use std::f64::consts::PI;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use synth::{synth::Synth, Float};
 
-const TWOPI: f32 = (PI * 2.0) as f32;
-const FREQ: f32 = 440.0;
+mod synth;
+
 const SAMPLE_RATE: u32 = 44_100;
-const SCALE: [f32; 8] = [
+const SCALE: [Float; 8] = [
     261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,
 ];
+// const FREQ: Float = 440.0;
+const U16_MAX: Float = u16::MAX as Float;
+// const CHORD: [Float; 3] = [FREQ, FREQ * 32.0 / 27.0, FREQ * 3.0 / 2.0];
+// const CHORD: [Float; 3] = [164.81, 196.00, 220.00];
 
-#[derive(Clone)]
-struct WavetableOscillator {
-    sample_rate: u32,
-    wave_table: Vec<f32>,
-    index: f32,
-    index_increment: f32,
-}
-
-impl WavetableOscillator {
-    fn new(sample_rate: u32, wave_table: Vec<f32>) -> Self {
-        Self {
-            sample_rate,
-            wave_table,
-            index: 0.0,
-            index_increment: 0.0,
-        }
-    }
-
-    fn set_frequency(&mut self, frequency: f32) {
-        self.index_increment = frequency * self.wave_table.len() as f32 / self.sample_rate as f32;
-    }
-
-    fn get_sample(&mut self) -> f32 {
-        let sample = self.lerp();
-        self.index += self.index_increment;
-        self.index %= self.wave_table.len() as f32;
-        sample
-    }
-
-    fn lerp(&self) -> f32 {
-        let truncated_index = self.index as usize;
-        let next_index = (truncated_index + 1) % self.wave_table.len();
-
-        let next_index_weight = self.index - truncated_index as f32;
-        let truncated_index_weight = 1.0 - next_index_weight;
-
-        truncated_index_weight * self.wave_table[truncated_index]
-            + next_index_weight * self.wave_table[next_index]
-    }
-}
-
-fn convert(sample: f32) -> u8 {
+fn convert(sample: Float) -> (u8, u8) {
     // (((sample + 1.0) / 2.0) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
-    (((sample * 0.5) + 0.5) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
+    // (((sample * 0.5) + 0.5) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
+    debug_assert!(sample < 1.0);
+    debug_assert!(sample > -1.0);
+    let normal = (((sample * 0.5) + 0.5) * U16_MAX) as u16;
+
+    (
+        (normal & 0b_0000_0000_1111_1111_u16) as u8,
+        (normal >> 8) as u8,
+    )
 }
 
 fn main() -> Result<()> {
@@ -94,73 +65,48 @@ fn main() -> Result<()> {
     )?;
     i2s.tx_enable()?;
 
-    let wave_table_size = 128;
-    let wave_table: Vec<f32> = (0..wave_table_size)
-        .map(|n| (TWOPI * n as f32 / wave_table_size as f32).sin())
-        .collect();
+    let wave_table_size = 64;
 
-    let oscillator = Arc::new(Mutex::new(WavetableOscillator::new(
-        SAMPLE_RATE,
-        wave_table.clone(),
-    )));
-    info!("generating buffer");
-    // let mut buf = Vec::new();
+    let synth = Arc::new(Mutex::new(Synth::new(wave_table_size, SAMPLE_RATE)));
+
     ThreadSpawnConfiguration {
         name: Some("audio-playback\0".as_bytes()),
-        // stack_size: 980000,
-        // priority: 15,
         pin_to_core: Some(Core::Core1),
         ..Default::default()
     }
     .set()?;
 
-    let osc = oscillator.clone();
-    // for _ in 0..SAMPLE_RATE {
+    let syn = synth.clone();
     thread::spawn(move || loop {
-        let sample = convert(oscillator.lock().unwrap().get_sample());
-        if let Err(why) = i2s.write(&[sample, 0, sample, 0], BLOCK) {
+        let sample = convert(synth.lock().unwrap().get_sample());
+        if let Err(why) = i2s.write(&[sample.0, sample.1, sample.0, sample.1], BLOCK) {
             error!("could not send data bc {why}");
         }
     });
 
     ThreadSpawnConfiguration {
         name: Some("change-notes\0".as_bytes()),
-        // stack_size: 98000,
-        // priority: 15,
         pin_to_core: Some(Core::Core0),
         ..Default::default()
     }
     .set()?;
 
     let _ = thread::spawn(move || {
-        loop {
-            // synth.lock().unwrap().step();
-            for note in SCALE {
-                info!("adding note {note}");
-                osc.lock().unwrap().set_frequency(note);
-                // if let Err(why) = tx.send(0) {
-                //     error!("could not send data bc {why}");
-                // }
-                // if let Err(why) = tx.send(Some(synth.buff.clone())) {
-                //     error!("could not send data bc {why}");
-                // }
-                // if let Err(why) = tx.send(Some(synth.buff.clone())) {
-                //     error!("could not send data bc {why}");
-                // }
-                FreeRtos::delay_us(250_000);
-
-                osc.lock().unwrap().set_frequency(0.0);
-                // synth.lock().unwrap().rm_note(note);
-                // info!("notes: {:?}", synth.notes);
-            }
-            info!("*** done ***");
-            // if let Err(why) = tx.send(Some(synth.buff.clone())) {
-            //     error!("could not send data bc {why}");
-            // }
-            FreeRtos::delay_us(1_000_000);
+        // loop {
+        for note in SCALE {
+            info!("switching note {note}...");
+            syn.lock().unwrap().set_frequency(note);
+            FreeRtos::delay_us(250_000);
         }
+
+        syn.lock().unwrap().set_frequency(0.0);
+        info!("*** done ***");
+
+        // FreeRtos::delay_us(1_000_000);
+        // }
     })
     .join();
 
+    info!("*** NOW EXITING ***");
     Ok(())
 }
