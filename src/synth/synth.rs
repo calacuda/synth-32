@@ -5,7 +5,7 @@ use super::N_OSCILATORS;
 // use log::*;
 use std::f64::consts::PI;
 
-const DISCOUNT: Float = 1.0 / N_OSCILATORS as Float;
+const DISCOUNT: Float = 1.0 / (N_OSCILATORS - 1) as Float;
 const HALF_U16: Float = u16::MAX as Float * 0.5;
 const VOLUME: Float = 1.0;
 
@@ -39,6 +39,7 @@ impl Synth {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_frequency(&mut self, frequency: Float) {
         for (i, osc) in self.osc_s.iter_mut().enumerate() {
             osc.set_frequency(frequency * (i as Float + 1.0));
@@ -65,6 +66,7 @@ impl Synth {
         self.tremolo.set_status(on);
     }
 
+    /// expects a number greater then zero. works best with numbers under 15
     pub fn set_trem_freq(&mut self, frequency: Float) {
         self.tremolo.osc.set_frequency(frequency);
     }
@@ -86,11 +88,13 @@ impl Synth {
         };
 
         // let normal = (((sample + 1.0) * 0.5) * U16_MAX) as u16;
-        let normal = ((((sample + 1.0) * 0.5) * HALF_U16) * self.volume * volume) as u16;
+        let normalized = ((sample + 1.0) * 0.5) * HALF_U16;
+        // add echo/delay here
+        let converted = (normalized * self.volume * volume) as u16;
 
         (
-            (normal & 0b_0000_0000_1111_1111_u16) as u8,
-            (normal >> 8) as u8,
+            (converted & 0b_0000_0000_1111_1111_u16) as u8,
+            (converted >> 8) as u8,
         )
     }
 

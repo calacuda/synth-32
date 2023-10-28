@@ -1,29 +1,24 @@
 use anyhow::{bail, Result};
 use esp_idf_svc::hal::cpu::Core;
-use esp_idf_svc::hal::delay::FreeRtos;
 use esp_idf_svc::hal::delay::BLOCK;
 use esp_idf_svc::hal::gpio::AnyIOPin;
 use esp_idf_svc::hal::i2s::{config, I2sDriver};
 use esp_idf_svc::hal::peripherals;
 use esp_idf_svc::hal::task::thread::ThreadSpawnConfiguration;
 use log::*;
-use moanin::SONG;
-use notes::NOTES;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use synth::{synth::Synth, Float};
 
-mod moanin;
+use crate::tests::run_test;
+
 mod notes;
 mod synth;
+mod tests;
 
 pub type Note = Float;
 
 const SAMPLE_RATE: u32 = 44_100;
-const SCALE: [Note; 8] = [
-    261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,
-];
-const CHORD: [Float; 3] = [164.81, 196.00, 220.00];
 
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
@@ -82,87 +77,13 @@ fn main() -> Result<()> {
     .set()?;
 
     let _ = thread::spawn(move || {
-        info!("*** playing scale ***");
-
-        for note in SCALE {
-            syn.lock().unwrap().play(note);
-            FreeRtos::delay_us(250_000);
-            syn.lock().unwrap().stop(note);
-        }
-
-        info!("*** done ***");
-
-        FreeRtos::delay_us(1_000_000);
-
-        info!("*** playing song ***");
-
-        // for _ in 0..2 {
-        for (name, note_len, q_len) in SONG {
-            let note = *NOTES.get(name).unwrap();
-            syn.lock().unwrap().play(note);
-            FreeRtos::delay_us(note_len);
-            syn.lock().unwrap().stop(note);
-            FreeRtos::delay_us(q_len);
-            FreeRtos::delay_ms(1);
-        }
-        // }
-
-        info!("*** done ***");
-
-        FreeRtos::delay_us(1_000_000);
-
-        info!("*** arpegeo ***");
-
-        for note in CHORD {
-            syn.lock().unwrap().play(note);
-            FreeRtos::delay_us(250_000);
-            syn.lock().unwrap().stop(note);
-        }
-
-        info!("*** done ***");
-
-        FreeRtos::delay_us(1_000_000);
-
-        info!("*** rolling chord ***");
-
-        for note in CHORD {
-            syn.lock().unwrap().play(note);
-            FreeRtos::delay_us(250_000);
-        }
-
-        FreeRtos::delay_us(1_000_000);
-
-        for note in CHORD {
-            syn.lock().unwrap().stop(note);
-            FreeRtos::delay_us(250_000);
-        }
-        info!("*** done ***");
-
-        FreeRtos::delay_us(1_000_000);
-
-        info!("*** tremolo ***");
-
-        for note in CHORD {
-            syn.lock().unwrap().play(note);
-        }
-
-        FreeRtos::delay_us(1_000_000);
-
-        syn.lock().unwrap().set_trem_freq(0.8);
-        syn.lock().unwrap().set_trem_depth(1.0);
-        syn.lock().unwrap().tremolo(true);
-
-        FreeRtos::delay_us(4_000_000);
-
-        for note in CHORD {
-            syn.lock().unwrap().stop(note);
-        }
-
-        info!("*** done ***");
+        info!("*** RUNNING TESTS ***");
+        run_test(&syn);
+        info!("*** Done ***");
     })
     .join();
 
-    info!("*** tests complete ***");
+    info!("*** TESTS COMPLETE ***");
     info!("*** NOW EXITING ***");
     Ok(())
 }
