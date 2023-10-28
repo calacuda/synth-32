@@ -79,7 +79,7 @@ impl Synth {
         debug_assert!(sample < 1.0);
         debug_assert!(sample > -1.0);
         let volume = if self.tremolo.on {
-            self.tremolo.get_sample()
+            self.tremolo.get_sample() + 1.0
         } else {
             1.0
         };

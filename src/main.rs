@@ -84,74 +84,76 @@ fn main() -> Result<()> {
     .set()?;
 
     let _ = thread::spawn(move || {
-        // info!("*** playing scale ***");
-        //
-        // for note in SCALE {
-        //     syn.lock().unwrap().play(note);
-        //     FreeRtos::delay_us(250_000);
-        //     syn.lock().unwrap().stop(note);
-        // }
-        //
-        // info!("*** done ***");
-        //
-        // FreeRtos::delay_us(1_000_000);
-        //
-        // info!("*** playing song ***");
-        //
-        // for (name, note_len, q_len) in SONG {
-        //     let note = *NOTES.get(name).unwrap();
-        //     // info!("note: {note}, for {note_len} us");
-        //     syn.lock().unwrap().play(note);
-        //     FreeRtos::delay_us(note_len);
-        //     syn.lock().unwrap().stop(note);
-        //     FreeRtos::delay_us(q_len);
-        //     FreeRtos::delay_ms(1);
-        // }
-        //
-        // info!("*** done ***");
-        //
-        // FreeRtos::delay_us(1_000_000);
-        //
-        // info!("*** arpegeo ***");
-        //
-        // for note in CHORD {
-        //     syn.lock().unwrap().play(note);
-        //     FreeRtos::delay_us(250_000);
-        //     syn.lock().unwrap().stop(note);
-        // }
-        //
-        // info!("*** done ***");
-        //
-        // FreeRtos::delay_us(1_000_000);
-        //
-        // info!("*** rolling chord ***");
-        //
-        // for note in CHORD {
-        //     syn.lock().unwrap().play(note);
-        //     FreeRtos::delay_us(250_000);
-        // }
-        //
-        // FreeRtos::delay_us(1_000_000);
-        //
-        // for note in CHORD {
-        //     syn.lock().unwrap().stop(note);
-        //     FreeRtos::delay_us(250_000);
-        // }
-        // info!("*** done ***");
-        //
-        // FreeRtos::delay_us(1_000_000);
+        info!("*** playing scale ***");
+
+        for note in SCALE {
+            syn.lock().unwrap().play(note);
+            FreeRtos::delay_us(250_000);
+            syn.lock().unwrap().stop(note);
+        }
+
+        info!("*** done ***");
+
+        FreeRtos::delay_us(1_000_000);
+
+        info!("*** playing song ***");
+
+        for (name, note_len, q_len) in SONG {
+            let note = *NOTES.get(name).unwrap();
+            // info!("note: {note}, for {note_len} us");
+            syn.lock().unwrap().play(note);
+            FreeRtos::delay_us(note_len);
+            syn.lock().unwrap().stop(note);
+            FreeRtos::delay_us(q_len);
+            FreeRtos::delay_ms(1);
+        }
+
+        info!("*** done ***");
+
+        FreeRtos::delay_us(1_000_000);
+
+        info!("*** arpegeo ***");
+
+        for note in CHORD {
+            syn.lock().unwrap().play(note);
+            FreeRtos::delay_us(250_000);
+            syn.lock().unwrap().stop(note);
+        }
+
+        info!("*** done ***");
+
+        FreeRtos::delay_us(1_000_000);
+
+        info!("*** rolling chord ***");
+
+        for note in CHORD {
+            syn.lock().unwrap().play(note);
+            FreeRtos::delay_us(250_000);
+        }
+
+        FreeRtos::delay_us(1_000_000);
+
+        for note in CHORD {
+            syn.lock().unwrap().stop(note);
+            FreeRtos::delay_us(250_000);
+        }
+        info!("*** done ***");
+
+        FreeRtos::delay_us(1_000_000);
 
         info!("*** tremolo ***");
-
-        syn.lock().unwrap().tremolo(true);
-        syn.lock().unwrap().set_trem_freq(2.0);
-        syn.lock().unwrap().set_trem_depth(0.2);
 
         for note in CHORD {
             syn.lock().unwrap().play(note);
         }
 
-        FreeRtos::delay_us(2_000_000);
+        FreeRtos::delay_us(1_000_000);
+
+        syn.lock().unwrap().set_trem_freq(2.0);
+        syn.lock().unwrap().set_trem_depth(0.75);
+        syn.lock().unwrap().tremolo(true);
+
+        FreeRtos::delay_us(3_000_000);
 
         for note in CHORD {
             syn.lock().unwrap().stop(note);
