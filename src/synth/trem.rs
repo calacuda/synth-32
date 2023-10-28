@@ -11,7 +11,7 @@ impl Tremolo {
     pub fn new(osc: WavetableOscillator) -> Self {
         Self {
             on: false,
-            depth: 0.5,
+            depth: 1.0,
             osc,
         }
     }
@@ -21,6 +21,6 @@ impl Tremolo {
     }
 
     pub fn get_sample(&mut self) -> Float {
-        self.osc.get_sample() * self.depth
+        self.osc.get_sample() * (self.depth * 0.5) + 0.5
     }
 }

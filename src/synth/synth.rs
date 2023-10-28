@@ -6,8 +6,8 @@ use super::N_OSCILATORS;
 use std::f64::consts::PI;
 
 const DISCOUNT: Float = 1.0 / N_OSCILATORS as Float;
-const HALF_U16: Float = (u16::MAX / 2) as Float;
-const VOLUME: Float = 0.25;
+const HALF_U16: Float = u16::MAX as Float * 0.5;
+const VOLUME: Float = 1.0;
 
 pub struct Synth {
     osc_s: Vec<WavetableOscillator>, // vectors iterate faster when using iter_mut apparently
@@ -69,6 +69,7 @@ impl Synth {
         self.tremolo.osc.set_frequency(frequency);
     }
 
+    /// expects a number between 0.0 and 1.0
     pub fn set_trem_depth(&mut self, depth: Float) {
         self.tremolo.depth = depth;
     }
@@ -79,7 +80,7 @@ impl Synth {
         debug_assert!(sample < 1.0);
         debug_assert!(sample > -1.0);
         let volume = if self.tremolo.on {
-            self.tremolo.get_sample() + 1.0
+            self.tremolo.get_sample()
         } else {
             1.0
         };

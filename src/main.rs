@@ -149,10 +149,10 @@ fn main() -> Result<()> {
         FreeRtos::delay_us(1_000_000);
 
         syn.lock().unwrap().set_trem_freq(0.8);
-        syn.lock().unwrap().set_trem_depth(0.75);
+        syn.lock().unwrap().set_trem_depth(1.0);
         syn.lock().unwrap().tremolo(true);
 
-        FreeRtos::delay_us(3_000_000);
+        FreeRtos::delay_us(4_000_000);
 
         for note in CHORD {
             syn.lock().unwrap().stop(note);
