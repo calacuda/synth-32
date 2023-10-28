@@ -72,8 +72,6 @@ fn main() -> Result<()> {
         if let Err(why) = i2s.write(&[sample.0, sample.1, sample.0, sample.1], BLOCK) {
             error!("could not send data bc {why}");
         }
-        // let sample = (((synth.lock().unwrap().get_sample() * 0.5) + 0.5) * U16_MAX) as u16;
-        // println!("{}", sample)
     });
 
     ThreadSpawnConfiguration {
@@ -98,15 +96,16 @@ fn main() -> Result<()> {
 
         info!("*** playing song ***");
 
+        // for _ in 0..2 {
         for (name, note_len, q_len) in SONG {
             let note = *NOTES.get(name).unwrap();
-            // info!("note: {note}, for {note_len} us");
             syn.lock().unwrap().play(note);
             FreeRtos::delay_us(note_len);
             syn.lock().unwrap().stop(note);
             FreeRtos::delay_us(q_len);
             FreeRtos::delay_ms(1);
         }
+        // }
 
         info!("*** done ***");
 
@@ -149,7 +148,7 @@ fn main() -> Result<()> {
 
         FreeRtos::delay_us(1_000_000);
 
-        syn.lock().unwrap().set_trem_freq(2.0);
+        syn.lock().unwrap().set_trem_freq(0.8);
         syn.lock().unwrap().set_trem_depth(0.75);
         syn.lock().unwrap().tremolo(true);
 
@@ -163,6 +162,7 @@ fn main() -> Result<()> {
     })
     .join();
 
+    info!("*** tests complete ***");
     info!("*** NOW EXITING ***");
     Ok(())
 }
