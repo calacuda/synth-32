@@ -1,6 +1,7 @@
 pub type Float = f32;
 
 pub mod synth;
+pub mod trem;
 mod wave_table_osc;
 
 // any higher and the synth gets angry

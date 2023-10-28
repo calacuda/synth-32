@@ -23,23 +23,7 @@ const SAMPLE_RATE: u32 = 44_100;
 const SCALE: [Note; 8] = [
     261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,
 ];
-const U16_MAX: Float = u16::MAX as Float;
-// const FREQ: Float = 440.0;
-// const CHORD: [Float; 3] = [FREQ, FREQ * 32.0 / 27.0, FREQ * 3.0 / 2.0];
-// const CHORD: [Float; 3] = [164.81, 196.00, 220.00];
-
-fn convert(sample: Float) -> (u8, u8) {
-    // (((sample + 1.0) / 2.0) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
-    // (((sample * 0.5) + 0.5) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
-    debug_assert!(sample < 1.0);
-    debug_assert!(sample > -1.0);
-    let normal = (((sample * 0.5) + 0.5) * U16_MAX) as u16;
-
-    (
-        (normal & 0b_0000_0000_1111_1111_u16) as u8,
-        (normal >> 8) as u8,
-    )
-}
+const CHORD: [Float; 3] = [164.81, 196.00, 220.00];
 
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
@@ -84,10 +68,12 @@ fn main() -> Result<()> {
 
     let syn = synth.clone();
     thread::spawn(move || loop {
-        let sample = convert(synth.lock().unwrap().get_sample());
+        let sample = synth.lock().unwrap().get_sample();
         if let Err(why) = i2s.write(&[sample.0, sample.1, sample.0, sample.1], BLOCK) {
             error!("could not send data bc {why}");
         }
+        // let sample = (((synth.lock().unwrap().get_sample() * 0.5) + 0.5) * U16_MAX) as u16;
+        // println!("{}", sample)
     });
 
     ThreadSpawnConfiguration {
@@ -98,27 +84,80 @@ fn main() -> Result<()> {
     .set()?;
 
     let _ = thread::spawn(move || {
-        // loop {
-        for (name, note_len, q_len) in SONG {
-            let note = *NOTES.get(name).unwrap();
-            // info!("note: {note}, for {note_len} us");
-            syn.lock().unwrap().set_frequency(note);
-            FreeRtos::delay_us(note_len);
-            syn.lock().unwrap().set_frequency(0.0);
-            FreeRtos::delay_us(q_len);
-            FreeRtos::delay_ms(1);
-        }
+        // info!("*** playing scale ***");
+        //
         // for note in SCALE {
-        //     info!("switching note {note}...");
-        //     syn.lock().unwrap().set_frequency(note);
+        //     syn.lock().unwrap().play(note);
+        //     FreeRtos::delay_us(250_000);
+        //     syn.lock().unwrap().stop(note);
+        // }
+        //
+        // info!("*** done ***");
+        //
+        // FreeRtos::delay_us(1_000_000);
+        //
+        // info!("*** playing song ***");
+        //
+        // for (name, note_len, q_len) in SONG {
+        //     let note = *NOTES.get(name).unwrap();
+        //     // info!("note: {note}, for {note_len} us");
+        //     syn.lock().unwrap().play(note);
+        //     FreeRtos::delay_us(note_len);
+        //     syn.lock().unwrap().stop(note);
+        //     FreeRtos::delay_us(q_len);
+        //     FreeRtos::delay_ms(1);
+        // }
+        //
+        // info!("*** done ***");
+        //
+        // FreeRtos::delay_us(1_000_000);
+        //
+        // info!("*** arpegeo ***");
+        //
+        // for note in CHORD {
+        //     syn.lock().unwrap().play(note);
+        //     FreeRtos::delay_us(250_000);
+        //     syn.lock().unwrap().stop(note);
+        // }
+        //
+        // info!("*** done ***");
+        //
+        // FreeRtos::delay_us(1_000_000);
+        //
+        // info!("*** rolling chord ***");
+        //
+        // for note in CHORD {
+        //     syn.lock().unwrap().play(note);
         //     FreeRtos::delay_us(250_000);
         // }
-
-        syn.lock().unwrap().set_frequency(0.0);
-        info!("*** done ***");
-
+        //
         // FreeRtos::delay_us(1_000_000);
+        //
+        // for note in CHORD {
+        //     syn.lock().unwrap().stop(note);
+        //     FreeRtos::delay_us(250_000);
         // }
+        // info!("*** done ***");
+        //
+        // FreeRtos::delay_us(1_000_000);
+
+        info!("*** tremolo ***");
+
+        syn.lock().unwrap().tremolo(true);
+        syn.lock().unwrap().set_trem_freq(2.0);
+        syn.lock().unwrap().set_trem_depth(0.2);
+
+        for note in CHORD {
+            syn.lock().unwrap().play(note);
+        }
+
+        FreeRtos::delay_us(2_000_000);
+
+        for note in CHORD {
+            syn.lock().unwrap().stop(note);
+        }
+
+        info!("*** done ***");
     })
     .join();
 

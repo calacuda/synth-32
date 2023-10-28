@@ -1,6 +1,6 @@
 # Synth-32
 
-Synth-32 is an esp-32 based, monophonic, wave table synth, written in rust.
+Synth-32 is an esp-32 based, polyphonic, wave table synth, written in rust.
 
 ## Features
 
@@ -10,10 +10,11 @@ Synth-32 is an esp-32 based, monophonic, wave table synth, written in rust.
 - [] sawtooth wave
 - [] attack setting
 - [] decay setting
+- [x] tremolo
 
 ## Software Notes
 
-When compiled in debug mode the synth supports a max of 4 oscilators. But, when compiled in release mode, it supports a max of 5 oscilators. by default the extra oscilators are used to prodduse overtones over the fundamental.
+When compiled in debug mode the synth supports a max of 4 oscilators. But, when compiled in release mode, it supports a max of 5 oscilators. by default there is one oscilator per note.
 
 ## Harware Notes
 
