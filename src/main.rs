@@ -7,18 +7,24 @@ use esp_idf_svc::hal::i2s::{config, I2sDriver};
 use esp_idf_svc::hal::peripherals;
 use esp_idf_svc::hal::task::thread::ThreadSpawnConfiguration;
 use log::*;
+use moanin::SONG;
+use notes::NOTES;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use synth::{synth::Synth, Float};
 
+mod moanin;
+mod notes;
 mod synth;
 
+pub type Note = Float;
+
 const SAMPLE_RATE: u32 = 44_100;
-const SCALE: [Float; 8] = [
+const SCALE: [Note; 8] = [
     261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,
 ];
-// const FREQ: Float = 440.0;
 const U16_MAX: Float = u16::MAX as Float;
+// const FREQ: Float = 440.0;
 // const CHORD: [Float; 3] = [FREQ, FREQ * 32.0 / 27.0, FREQ * 3.0 / 2.0];
 // const CHORD: [Float; 3] = [164.81, 196.00, 220.00];
 
@@ -93,11 +99,20 @@ fn main() -> Result<()> {
 
     let _ = thread::spawn(move || {
         // loop {
-        for note in SCALE {
-            info!("switching note {note}...");
+        for (name, note_len, q_len) in SONG {
+            let note = *NOTES.get(name).unwrap();
+            // info!("note: {note}, for {note_len} us");
             syn.lock().unwrap().set_frequency(note);
-            FreeRtos::delay_us(250_000);
+            FreeRtos::delay_us(note_len);
+            syn.lock().unwrap().set_frequency(0.0);
+            FreeRtos::delay_us(q_len);
+            FreeRtos::delay_ms(1);
         }
+        // for note in SCALE {
+        //     info!("switching note {note}...");
+        //     syn.lock().unwrap().set_frequency(note);
+        //     FreeRtos::delay_us(250_000);
+        // }
 
         syn.lock().unwrap().set_frequency(0.0);
         info!("*** done ***");

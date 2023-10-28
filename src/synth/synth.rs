@@ -1,10 +1,10 @@
 use super::wave_table_osc::WavetableOscillator;
 use super::Float;
-use super::POLYPHONY;
+use super::N_OSCILATORS;
 // use log::*;
 use std::f64::consts::PI;
 
-const DISCOUNT: Float = 1.0 / POLYPHONY as Float;
+const DISCOUNT: Float = 1.0 / N_OSCILATORS as Float;
 
 pub struct Synth {
     osc_s: Vec<(WavetableOscillator, Float)>, // vectors iterate faster when using iter_mut apparently
@@ -18,7 +18,7 @@ impl Synth {
             .map(|n| (two_pi as Float * n as Float / table_size as Float).sin())
             .collect();
         let oscsilator = WavetableOscillator::new(sample_rate, wave_table.clone());
-        let osc_s = (1..=POLYPHONY)
+        let osc_s = (1..=N_OSCILATORS)
             .map(|i| (oscsilator.clone(), 1.0 - (0.15 * i as Float)))
             .collect();
 
@@ -32,6 +32,7 @@ impl Synth {
         }
     }
 
+    // used when handling multiple notes
     // pub fn play(&mut self, note: Float) {
     //     if let Some(i) = self.notes.iter().position(|freq| *freq == 0.0) {
     //         self.notes[i] = note;
@@ -42,14 +43,6 @@ impl Synth {
     // }
     //
     // pub fn stop(&mut self, note: Float) {
-    //     // let mut index = 0;
-    //     //
-    //     // for (i, (_, freq)) in self.osc_s.iter().enumerate() {
-    //     //     if *freq == note {
-    //     //         self.osc_s[]
-    //     //     }
-    //     // }
-    //     // info!("{:?}", self.notes);
     //     if let Some(i) = self.notes.iter().position(|freq| *freq == note) {
     //         self.notes[i] = 0.0;
     //         self.osc_s[i].set_frequency(0.0);
@@ -61,7 +54,7 @@ impl Synth {
     pub fn get_sample(&mut self) -> Float {
         self.osc_s
             .iter_mut()
-            .map(|(osc, v)| osc.get_sample() * DISCOUNT * *v)
+            .map(|(osc, v)| osc.get_sample() * *v)
             .sum::<Float>()
             * DISCOUNT
     }

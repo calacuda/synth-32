@@ -5,6 +5,6 @@ mod wave_table_osc;
 
 // any higher and the synth gets angry
 #[cfg(not(debug_assertions))]
-pub const POLYPHONY: usize = 6;
+pub const N_OSCILATORS: usize = 5;
 #[cfg(debug_assertions)]
-pub const POLYPHONY: usize = 4;
+pub const N_OSCILATORS: usize = 4;
