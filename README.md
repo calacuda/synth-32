@@ -11,9 +11,8 @@ Synth-32 is an esp-32 based, polyphonic, wave table synth, written in rust.
 - [] attack setting
 - [] decay setting
 - [x] tremolo
-- [] echo
+- [x] echo
 - [] chorus
-- [] reverb
 
 ## Software Notes
 

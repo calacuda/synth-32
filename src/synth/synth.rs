@@ -1,8 +1,9 @@
+use super::echo::Echo;
 use super::trem::Tremolo;
 use super::wave_table_osc::WavetableOscillator;
 use super::Float;
 use super::N_OSCILATORS;
-// use log::*;
+use log::*;
 use std::f64::consts::PI;
 
 const DISCOUNT: Float = 1.0 / (N_OSCILATORS - 1) as Float;
@@ -13,6 +14,7 @@ pub struct Synth {
     osc_s: Vec<WavetableOscillator>, // vectors iterate faster when using iter_mut apparently
     notes: [Float; N_OSCILATORS - 1],
     tremolo: Tremolo,
+    pub echo: Echo,
     volume: Float,
 }
 
@@ -30,11 +32,14 @@ impl Synth {
         //     .collect();
         let notes = [0.0; N_OSCILATORS - 1];
         let tremolo = Tremolo::new(oscsilator.clone());
+        info!("before echo");
+        let echo = Echo::new();
 
         Self {
             osc_s,
             notes,
             tremolo,
+            echo,
             volume: VOLUME,
         }
     }
@@ -77,8 +82,6 @@ impl Synth {
     }
 
     fn convert(&mut self, sample: Float) -> (u8, u8) {
-        // (((sample + 1.0) / 2.0) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
-        // (((sample * 0.5) + 0.5) * 255.0) as u8 // let sample = frame.channels()[0].to_f32();
         debug_assert!(sample < 1.0);
         debug_assert!(sample > -1.0);
         let volume = if self.tremolo.on {
@@ -88,7 +91,13 @@ impl Synth {
         };
 
         // let normal = (((sample + 1.0) * 0.5) * U16_MAX) as u16;
-        let normalized = ((sample + 1.0) * 0.5) * HALF_U16;
+        let normalized = ((if self.echo.on {
+            self.echo.pop(sample)
+        } else {
+            sample
+        } + 1.0)
+            * 0.5)
+            * HALF_U16;
         // add echo/delay here
         let converted = (normalized * self.volume * volume) as u16;
 

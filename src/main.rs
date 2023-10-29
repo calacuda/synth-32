@@ -19,6 +19,7 @@ mod tests;
 pub type Note = Float;
 
 const SAMPLE_RATE: u32 = 44_100;
+// const SAMPLE_RATE: u32 = 38_750;
 
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
@@ -77,9 +78,7 @@ fn main() -> Result<()> {
     .set()?;
 
     let _ = thread::spawn(move || {
-        info!("*** RUNNING TESTS ***");
         run_test(&syn);
-        info!("*** Done ***");
     })
     .join();
 

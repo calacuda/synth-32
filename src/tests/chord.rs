@@ -12,7 +12,7 @@ pub fn test(synth: &Arc<Mutex<Synth>>) {
         FreeRtos::delay_us(125_000);
     }
 
-    FreeRtos::delay_us(1_00_000);
+    FreeRtos::delay_us(100_000);
 
     for note in CHORD {
         synth.lock().unwrap().stop(note);
