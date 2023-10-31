@@ -1,8 +1,11 @@
 use super::{CHORD, COMPLETE_MSG};
-use crate::synth::synth::Synth;
+use crate::{synth::synth::Synth, Float};
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};
+
+pub const TREM_SPEED: Float = 20.0;
+pub const TREM_DEPTH: Float = 0.5;
 
 pub fn test(synth: &Arc<Mutex<Synth>>) {
     info!("*** Tremolo ***");
@@ -13,8 +16,8 @@ pub fn test(synth: &Arc<Mutex<Synth>>) {
 
     FreeRtos::delay_us(1_000_000);
 
-    synth.lock().unwrap().set_trem_freq(20.0);
-    synth.lock().unwrap().set_trem_depth(1.0);
+    synth.lock().unwrap().set_trem_freq(TREM_SPEED);
+    synth.lock().unwrap().set_trem_depth(TREM_DEPTH);
     synth.lock().unwrap().tremolo(true);
     info!("starting tremolo");
 

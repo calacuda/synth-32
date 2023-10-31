@@ -3,10 +3,14 @@ use super::COMPLETE_MSG;
 use crate::{
     notes::{NOTES, NOTE_NAMES},
     synth::synth::Synth,
+    Float,
 };
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};
+
+const TREM_SPEED: Float = 0.5;
+const TREM_DEPTH: Float = 0.5;
 
 fn note_sweep(synth: &Arc<Mutex<Synth>>) {
     for name in NOTE_NAMES {
@@ -26,8 +30,8 @@ pub fn test(synth: &Arc<Mutex<Synth>>) {
 pub fn trem_test(synth: &Arc<Mutex<Synth>>) {
     info!("*** Testing All Notes (With Tremolo) ***");
 
-    synth.lock().unwrap().set_trem_freq(5.0);
-    synth.lock().unwrap().set_trem_depth(1.0);
+    synth.lock().unwrap().set_trem_freq(TREM_SPEED);
+    synth.lock().unwrap().set_trem_depth(TREM_DEPTH);
     synth.lock().unwrap().tremolo(true);
 
     note_sweep(synth);
@@ -56,8 +60,8 @@ pub fn trem_echo_test(synth: &Arc<Mutex<Synth>>) {
 
     synth.lock().unwrap().echo.set_speed(ECHO_SPEED);
     synth.lock().unwrap().echo.set_volume(ECHO_VOLUME);
-    synth.lock().unwrap().set_trem_freq(5.0);
-    synth.lock().unwrap().set_trem_depth(1.0);
+    synth.lock().unwrap().set_trem_freq(TREM_SPEED);
+    synth.lock().unwrap().set_trem_depth(TREM_DEPTH);
     synth.lock().unwrap().tremolo(true);
     synth.lock().unwrap().echo(true);
 

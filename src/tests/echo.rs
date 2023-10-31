@@ -1,5 +1,5 @@
 use super::{CHORD, COMPLETE_MSG};
-use crate::synth::{synth::Synth, Float};
+use crate::{synth::synth::Synth, Float};
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};

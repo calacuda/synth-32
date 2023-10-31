@@ -90,7 +90,7 @@ impl Synth {
     fn convert(&mut self, sample: Float) -> (u8, u8) {
         debug_assert!(sample < 1.0);
         debug_assert!(sample > -1.0);
-        let volume = if self.tremolo.on {
+        let trem_volume = if self.tremolo.on {
             self.tremolo.get_sample()
         } else {
             1.0
@@ -105,7 +105,7 @@ impl Synth {
             * 0.5)
             * HALF_U16;
         // add echo/delay here
-        let converted = (normalized * self.volume * volume) as u16;
+        let converted = (normalized * self.volume * trem_volume) as u16;
 
         (
             (converted & 0b_0000_0000_1111_1111_u16) as u8,
