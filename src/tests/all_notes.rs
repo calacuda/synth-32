@@ -1,3 +1,4 @@
+use super::echo::{ECHO_SPEED, ECHO_VOLUME};
 use super::COMPLETE_MSG;
 use crate::{
     notes::{NOTES, NOTE_NAMES},
@@ -32,6 +33,38 @@ pub fn trem_test(synth: &Arc<Mutex<Synth>>) {
     note_sweep(synth);
 
     synth.lock().unwrap().tremolo(false);
+
+    info!("{COMPLETE_MSG}");
+}
+
+pub fn echo_test(synth: &Arc<Mutex<Synth>>) {
+    info!("*** Testing All Notes (With Echo) ***");
+
+    synth.lock().unwrap().echo.set_speed(ECHO_SPEED);
+    synth.lock().unwrap().echo.set_volume(ECHO_VOLUME);
+    synth.lock().unwrap().echo(true);
+
+    note_sweep(synth);
+
+    synth.lock().unwrap().echo(false);
+
+    info!("{COMPLETE_MSG}");
+}
+
+pub fn trem_echo_test(synth: &Arc<Mutex<Synth>>) {
+    info!("*** Testing All Notes (With Both Echo & Tremolo) ***");
+
+    synth.lock().unwrap().echo.set_speed(ECHO_SPEED);
+    synth.lock().unwrap().echo.set_volume(ECHO_VOLUME);
+    synth.lock().unwrap().set_trem_freq(5.0);
+    synth.lock().unwrap().set_trem_depth(1.0);
+    synth.lock().unwrap().tremolo(true);
+    synth.lock().unwrap().echo(true);
+
+    note_sweep(synth);
+
+    synth.lock().unwrap().tremolo(false);
+    synth.lock().unwrap().echo(false);
 
     info!("{COMPLETE_MSG}");
 }

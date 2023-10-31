@@ -31,17 +31,20 @@ pub fn run_test(synth: &Arc<Mutex<Synth>>) {
     // trem
     trem::test(synth);
     FreeRtos::delay_us(1_000_000);
-    // echo/delay
+    // echo
     echo::test(synth);
     FreeRtos::delay_us(1_000_000);
-    // echo/delay & trem
-
-    // FreeRtos::delay_us(1_000_000);
     // all notes (dry)
     all_notes::test(synth);
     FreeRtos::delay_us(1_000_000);
     // all notes (trem)
     all_notes::trem_test(synth);
-    // // FreeRtos::delay_us(1_000_000);
+    FreeRtos::delay_us(1_000_000);
+    // all notes echo
+    all_notes::echo_test(synth);
+    FreeRtos::delay_us(1_000_000);
+    // all ntoes echo & trem
+    all_notes::trem_echo_test(synth);
+    // FreeRtos::delay_us(1_000_000);
     info!("*** Done ***");
 }

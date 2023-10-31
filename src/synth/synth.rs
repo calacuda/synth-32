@@ -67,8 +67,14 @@ impl Synth {
         }
     }
 
+    /// turns tremolo on or off
     pub fn tremolo(&mut self, on: bool) {
         self.tremolo.set_status(on);
+    }
+
+    /// turns echo on or off
+    pub fn echo(&mut self, on: bool) {
+        self.echo.on(on);
     }
 
     /// expects a number greater then zero. works best with numbers under 15
