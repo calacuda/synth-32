@@ -20,6 +20,10 @@ impl Tremolo {
         self.on = status;
     }
 
+    pub fn toggle(&mut self) {
+        self.on = !self.on;
+    }
+
     pub fn get_sample(&mut self) -> Float {
         self.osc.get_sample() * (self.depth * 0.5) // + 0.5
     }

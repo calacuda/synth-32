@@ -52,6 +52,10 @@ impl Echo {
         self.on = on_off;
     }
 
+    pub fn toggle(&mut self) {
+        self.on = !self.on;
+    }
+
     pub fn pop(&mut self, sample: Float) -> Float {
         if self.on {
             let echo = ((self.buffer[self.i] * self.volume) + sample) * 0.5;

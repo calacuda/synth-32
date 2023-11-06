@@ -15,7 +15,7 @@ pub struct Synth {
     notes: [Float; N_OSCILATORS - 1],
     tremolo: Tremolo,
     pub echo: Echo,
-    volume: Float,
+    pub volume: Float,
 }
 
 impl Synth {
@@ -72,9 +72,17 @@ impl Synth {
         self.tremolo.set_status(on);
     }
 
+    pub fn tremolo_toggle(&mut self) {
+        self.tremolo.toggle();
+    }
+
     /// turns echo on or off
     pub fn echo(&mut self, on: bool) {
         self.echo.on(on);
+    }
+
+    pub fn echo_toggle(&mut self) {
+        self.echo.toggle();
     }
 
     /// expects a number greater then zero. works best with numbers under 15
