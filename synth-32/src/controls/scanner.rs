@@ -13,6 +13,9 @@ use esp_idf_svc::hal::gpio::{AnyIOPin, AnyOutputPin, Input, Output, PinDriver, P
 use log::*;
 use std::sync::{Arc, Mutex};
 
+/// used to tell the toggle function what effect to toggle (this si more then a little over
+/// complicated)
+#[derive(Debug)]
 enum Effect {
     Tremolo,
     Echo,
@@ -58,24 +61,48 @@ impl Scanner {
                 // 0..5
                 if self.rows[row_i].is_high() {
                     // info!("key pressed at location: ({row_i}, {col_i}). [(row_i, col_i)]");
-                    match (row_i, col_i) {
-                        (2, 1) => self.octave_down = true,       // self.octave_down(),
-                        (4, 0) => self.octave_up = true,         // self.octave_up(),
-                        (3, 0) => self.echo_conf.pressed = true, // self.toggle(Effect::Echo),
-                        (2, 0) => self.trem_conf.pressed = true, // self.toggle(Effect::Tremolo),
-                        (r, c) => {
-                            self.play_note(r, c);
-                            // println!("{}", self.get_i(r, c));
-                        }
+
+                    if (row_i, col_i) == (0, 0) {
+                        self.echo_conf.pressed = true;
+                    } else if (row_i, col_i) == (0, 2) {
+                        self.trem_conf.pressed = true;
+                    } else if (row_i, col_i) == (0, 1) {
+                        self.octave_down = true
+                    } else if (row_i, col_i) == (0, 3) {
+                        self.octave_up = true
+                    } else {
+                        self.play_note(row_i, col_i);
                     }
+
+                    // match (row_i, col_i) {
+                    //     (2, 1) => self.octave_down = true,       // self.octave_down(),
+                    //     (4, 0) => self.octave_up = true,         // self.octave_up(),
+                    //     (3, 0) => self.echo_conf.pressed = true, // self.toggle(Effect::Echo),
+                    //     (2, 0) => self.trem_conf.pressed = true, // self.toggle(Effect::Tremolo),
+                    //     (r, c) => {
+                    //         self.play_note(r, c);
+                    //         // println!("{}", self.get_i(r, c));
+                    //     }
+                    // }
                 } else {
-                    match (row_i, col_i) {
-                        (2, 1) => self.octave_down(),
-                        (4, 0) => self.octave_up(),
-                        (3, 0) => self.toggle(Effect::Echo),
-                        (2, 0) => self.toggle(Effect::Tremolo),
-                        (r, c) => self.stop_note(r, c),
+                    self.stop_note(row_i, col_i);
+                    if (row_i, col_i) == (0, 0) {
+                        self.toggle(Effect::Echo);
+                    } else if (row_i, col_i) == (0, 2) {
+                        self.toggle(Effect::Tremolo);
+                    } else if (row_i, col_i) == (0, 1) {
+                        self.octave_down();
+                    } else if (row_i, col_i) == (0, 3) {
+                        self.octave_up();
                     }
+
+                    // match (row_i, col_i) {
+                    //     (2, 1) => self.octave_down(),
+                    //     (4, 0) => self.octave_up(),
+                    //     (3, 0) => self.toggle(Effect::Echo),
+                    //     (2, 0) => self.toggle(Effect::Tremolo),
+                    //     (r, c) => self.stop_note(r, c),
+                    // }
                 }
             }
 
@@ -84,7 +111,9 @@ impl Scanner {
         }
 
         // TODO: average three readings from each knob and change effect settings accordingly
-        self.vol += ((self.adc.driver.read(&mut self.adc.vol).unwrap() - 128) as Float) / 3024.0;
+        // self.vol = (self.vol
+        //     + ((self.adc.driver.read(&mut self.adc.vol).unwrap() - 128) as Float) / 3024.0)
+        //     * 0.5;
         // self.trem_vol +=
         //     (self.adc.driver.read(&mut self.adc.trem_vol).unwrap() - 128) as Float / 3024.0;
         // self.echo_vol +=
@@ -97,11 +126,11 @@ impl Scanner {
         //         * 4.0
         //         + 1.0;
 
-        if self.tick_i == 0 {
-            let n_ticks = 10.0;
-            self.synth.lock().unwrap().volume = self.vol / n_ticks;
-            self.vol = 0.0;
-        }
+        // if self.tick_i == 0 {
+        //     let n_ticks = 10.0;
+        //     self.synth.lock().unwrap().volume = self.vol / n_ticks;
+        //     self.vol = 0.0;
+        // }
 
         self.tick_i += 1;
         self.tick_i %= 10;
@@ -117,13 +146,15 @@ impl Scanner {
     }
 
     fn octave_up(&mut self) {
-        if self.octave < 8 && self.octave_up {
+        if self.octave < (8 - 1) && self.octave_up {
             self.octave_up = false;
             self.octave += 1;
         }
     }
 
     fn toggle(&mut self, effect: Effect) {
+        // info!("activating {effect:?}");
+
         match effect {
             Effect::Tremolo => {
                 if self.trem_conf.pressed {
@@ -141,28 +172,36 @@ impl Scanner {
     }
 
     fn get_i(&mut self, r: usize, c: usize) -> usize {
-        ((self.columns.len() - 1) * c + r) + (12 * self.octave as usize)
+        ((self.columns.len() * r) + c) + (12 * self.octave as usize)
     }
 
-    fn get_freq(&mut self, r: usize, c: usize) -> Float {
-        // info!("note: {}", NOTE_NAMES[i]);
+    fn get_freq(&mut self, r: usize, c: usize) -> Option<&Float> {
         let i = self.get_i(r, c);
-        NOTES.get(NOTE_NAMES[i]).unwrap().clone()
+        if i >= NOTE_NAMES.len() {
+            return None;
+        }
+        // info!("note: {}", NOTE_NAMES[i]);
+        NOTES.get(NOTE_NAMES[i])
     }
 
     fn play_note(&mut self, r: usize, c: usize) {
-        let note = self.get_freq(r, c);
-        self.synth.lock().unwrap().play(note);
+        if let Some(note) = self.get_freq(r, c) {
+            let note = note.clone();
+            self.synth.lock().unwrap().play(note);
+        }
     }
 
     fn stop_note(&mut self, r: usize, c: usize) {
-        let note = self.get_freq(r, c);
-        self.synth.lock().unwrap().stop(note);
+        if let Some(note) = self.get_freq(r, c) {
+            let note = note.clone();
+            self.synth.lock().unwrap().stop(note);
+        }
     }
 
     pub fn set_pull(&mut self) -> Result<()> {
         for pin in self.rows.iter_mut() {
             pin.set_pull(Pull::Down)?;
+            // pin.set_low();
         }
 
         Ok(())

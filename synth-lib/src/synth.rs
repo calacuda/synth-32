@@ -6,13 +6,13 @@ use super::N_OSCILATORS;
 use log::*;
 use std::f64::consts::PI;
 
-const DISCOUNT: Float = 1.0 / (N_OSCILATORS - 1) as Float;
+const DISCOUNT: Float = 1.0 / (N_OSCILATORS) as Float;
 const HALF_U16: Float = u16::MAX as Float * 0.5;
 const VOLUME: Float = 1.0;
 
 pub struct Synth {
     osc_s: Vec<WavetableOscillator>, // vectors iterate faster when using iter_mut apparently
-    notes: [Float; N_OSCILATORS - 1],
+    notes: [Float; N_OSCILATORS],
     tremolo: Tremolo,
     pub echo: Echo,
     pub volume: Float,
@@ -26,13 +26,12 @@ impl Synth {
             .map(|n| (two_pi as Float * n as Float / table_size as Float).sin())
             .collect();
         let oscsilator = WavetableOscillator::new(sample_rate, wave_table.clone());
-        let osc_s = (1..N_OSCILATORS).map(|_| oscsilator.clone()).collect();
+        let osc_s = (0..N_OSCILATORS).map(|_| oscsilator.clone()).collect();
         // let osc_s = (1..=N_OSCILATORS)
         //     .map(|i| (oscsilator.clone(), 1.0 - (0.15 * i as Float)))
         //     .collect();
-        let notes = [0.0; N_OSCILATORS - 1];
+        let notes = [0.0; N_OSCILATORS];
         let tremolo = Tremolo::new(oscsilator.clone());
-        info!("before echo");
         let echo = Echo::new(sample_rate);
 
         Self {
@@ -53,6 +52,11 @@ impl Synth {
 
     /// used to start playing a note
     pub fn play(&mut self, note: Float) {
+        if self.notes.contains(&note) {
+            return;
+        }
+        // info!("playing note {note}");
+
         if let Some(i) = self.notes.iter().position(|freq| *freq == 0.0) {
             self.notes[i] = note;
             self.osc_s[i].set_frequency(note);
@@ -122,10 +126,29 @@ impl Synth {
     }
 
     pub fn get_sample(&mut self) -> (u8, u8) {
+        // let mut osc_s = if self.tremolo.on {
+        //     &Vec::from(
+        //         self.osc_s
+        //             .split_last_mut()
+        //             .unwrap_or((&mut self.osc_s[0], &mut self.osc_s))
+        //             .1,
+        //     )
+        // } else {
+        //     &self.osc_s
+        // };
         let sample = self
             .osc_s
             .iter_mut()
-            .map(|osc| osc.get_sample())
+            .enumerate()
+            .map(|(i, osc)| {
+                // println!("foo");
+                if !(i == (N_OSCILATORS - 1) && self.tremolo.on) {
+                    osc.get_sample()
+                } else {
+                    // println!("zero");
+                    0.0
+                }
+            })
             .sum::<Float>()
             * DISCOUNT;
         self.convert(sample)

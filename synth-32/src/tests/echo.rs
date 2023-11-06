@@ -5,7 +5,7 @@ use log::info;
 use std::sync::{Arc, Mutex};
 use synth::synth::Synth;
 
-pub const ECHO_SPEED: Float = 5.0;
+pub const ECHO_SPEED: Float = 0.75;
 pub const ECHO_VOLUME: Float = 0.9;
 
 pub fn test(synth: &Arc<Mutex<Synth>>) {
