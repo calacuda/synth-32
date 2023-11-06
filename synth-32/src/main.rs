@@ -16,7 +16,6 @@ use crate::tests::run_test;
 
 mod controls;
 mod notes;
-mod synth;
 mod tests;
 
 pub type Note = Float;
@@ -48,26 +47,16 @@ fn main() -> Result<()> {
     let mut i2s = I2sDriver::new_std_tx(
         peripherals.i2s0,
         &config,
-        pins.gpio32,              // bclk
-        pins.gpio25,              // dout
+        pins.gpio14,              // bclk
+        pins.gpio13,              // dout
         Option::<AnyIOPin>::None, // mclk
-        pins.gpio33,              // ws (l-r-clk)
+        pins.gpio12,              // ws (l-r-clk)
     )?;
     i2s.tx_enable()?;
 
     let wave_table_size = 64;
 
     let synth = Arc::new(Mutex::new(Synth::new(wave_table_size, SAMPLE_RATE)));
-
-    // make AdcDriver
-    // TODO: make AdcDriver
-
-    // make contoller
-    // pins.gpio13.set_pull(Pull::Down);
-    // pins.gpio12.set_pull(Pull::Down);
-    // pins.gpio21.set_pull(Pull::Down);
-    // pins.gpio26.set_pull(Pull::Down);
-    // pins.gpio27.set_pull(Pull::Down);
 
     let mut ctrl = Scanner {
         octave: 3,
@@ -77,37 +66,30 @@ fn main() -> Result<()> {
         octave_up: false,
         octave_down: false,
         columns: [
-            PinDriver::output(<Gpio5 as Into<AnyOutputPin>>::into(pins.gpio5))?,
-            PinDriver::output(<Gpio17 as Into<AnyOutputPin>>::into(pins.gpio17))?,
-            PinDriver::output(<Gpio16 as Into<AnyOutputPin>>::into(pins.gpio16))?,
-            PinDriver::output(<Gpio18 as Into<AnyOutputPin>>::into(pins.gpio18))?,
-            PinDriver::output(<Gpio2 as Into<AnyOutputPin>>::into(pins.gpio2))?,
-            PinDriver::output(<Gpio22 as Into<AnyOutputPin>>::into(pins.gpio22))?,
+            PinDriver::output(<Gpio19 as Into<AnyOutputPin>>::into(pins.gpio19))?,
+            PinDriver::output(<Gpio20 as Into<AnyOutputPin>>::into(pins.gpio20))?,
+            PinDriver::output(<Gpio21 as Into<AnyOutputPin>>::into(pins.gpio21))?,
+            PinDriver::output(<Gpio47 as Into<AnyOutputPin>>::into(pins.gpio47))?,
+            PinDriver::output(<Gpio48 as Into<AnyOutputPin>>::into(pins.gpio48))?,
+            PinDriver::output(<Gpio45 as Into<AnyOutputPin>>::into(pins.gpio45))?,
+            PinDriver::output(<Gpio0 as Into<AnyOutputPin>>::into(pins.gpio0))?,
+            PinDriver::output(<Gpio35 as Into<AnyOutputPin>>::into(pins.gpio35))?,
         ],
         rows: [
-            PinDriver::input(<Gpio26 as Into<AnyIOPin>>::into(pins.gpio26))?,
-            PinDriver::input(<Gpio27 as Into<AnyIOPin>>::into(pins.gpio27))?,
-            PinDriver::input(<Gpio21 as Into<AnyIOPin>>::into(pins.gpio21))?,
-            PinDriver::input(<Gpio23 as Into<AnyIOPin>>::into(pins.gpio23))?,
-            PinDriver::input(<Gpio19 as Into<AnyIOPin>>::into(pins.gpio19))?,
+            PinDriver::input(<Gpio36 as Into<AnyIOPin>>::into(pins.gpio36))?,
+            PinDriver::input(<Gpio37 as Into<AnyIOPin>>::into(pins.gpio37))?,
+            PinDriver::input(<Gpio38 as Into<AnyIOPin>>::into(pins.gpio38))?,
+            PinDriver::input(<Gpio39 as Into<AnyIOPin>>::into(pins.gpio39))?,
         ],
         adc: ADC {
             vol: adc::AdcChannelDriver::<{ adc::attenuation::DB_11 }, _>::new(pins.gpio4)?,
-            trem_vol: adc::AdcChannelDriver::<{ adc::attenuation::DB_11 }, _>::new(pins.gpio14)?,
-            trem_speed: adc::AdcChannelDriver::<{ adc::attenuation::DB_11 }, _>::new(pins.gpio15)?,
-            echo_vol: adc::AdcChannelDriver::<{ adc::attenuation::DB_11 }, _>::new(pins.gpio12)?,
-            echo_speed: adc::AdcChannelDriver::<{ adc::attenuation::DB_11 }, _>::new(pins.gpio13)?,
             driver: adc::AdcDriver::new(
-                peripherals.adc2,
+                peripherals.adc1,
                 &adc::config::Config::new().calibration(true),
             )?,
         },
         synth: synth.clone(),
         vol: 0.0,
-        trem_vol: 0.0,
-        trem_speed: 0.0,
-        echo_vol: 0.0,
-        echo_speed: 0.0,
     };
 
     ctrl.set_pull()?;

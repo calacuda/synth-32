@@ -1,12 +1,13 @@
 use super::effect_conf::GenEffectConf;
 use super::Octave;
 use crate::notes::{NOTES, NOTE_NAMES};
-use crate::{synth::synth::Synth, Float};
+use crate::Float;
 use anyhow::Result;
 use esp_idf_svc::hal::{
-    adc::{self, AdcDriver, ADC2},
+    adc::{self, AdcDriver, ADC1},
     gpio::*,
 };
+use synth::synth::Synth;
 // use esp_idf_svc::hal::delay::FreeRtos;
 use esp_idf_svc::hal::gpio::{AnyIOPin, AnyOutputPin, Input, Output, PinDriver, Pull};
 use log::*;
@@ -18,12 +19,12 @@ enum Effect {
 }
 
 pub struct ADC {
-    pub driver: AdcDriver<'static, ADC2>,
+    pub driver: AdcDriver<'static, ADC1>,
     pub vol: adc::AdcChannelDriver<'static, 3, Gpio4>,
-    pub trem_vol: adc::AdcChannelDriver<'static, 3, Gpio14>,
-    pub trem_speed: adc::AdcChannelDriver<'static, 3, Gpio15>,
-    pub echo_vol: adc::AdcChannelDriver<'static, 3, Gpio12>,
-    pub echo_speed: adc::AdcChannelDriver<'static, 3, Gpio13>,
+    // pub trem_vol: adc::AdcChannelDriver<'static, 3, Gpio14>,
+    // pub trem_speed: adc::AdcChannelDriver<'static, 3, Gpio15>,
+    // pub echo_vol: adc::AdcChannelDriver<'static, 3, Gpio12>,
+    // pub echo_speed: adc::AdcChannelDriver<'static, 3, Gpio13>,
 }
 
 pub struct Scanner {
@@ -35,16 +36,16 @@ pub struct Scanner {
     pub octave_up: bool,
     pub octave_down: bool,
     // pub columns: Vec<PinDriver<'static, AnyOutputPin, Output>>,
-    pub columns: [PinDriver<'static, AnyOutputPin, Output>; 6],
+    pub columns: [PinDriver<'static, AnyOutputPin, Output>; 8],
     // pub rows: Vec<PinDrivepiano notes chartr<'static, AnyInputPin, Input>>,
-    pub rows: [PinDriver<'static, AnyIOPin, Input>; 5],
+    pub rows: [PinDriver<'static, AnyIOPin, Input>; 4],
     pub adc: ADC,
     pub synth: Arc<Mutex<Synth>>,
     pub vol: Float,
-    pub trem_vol: Float,
-    pub trem_speed: Float,
-    pub echo_vol: Float,
-    pub echo_speed: Float,
+    // pub trem_vol: Float,
+    // pub trem_speed: Float,
+    // pub echo_vol: Float,
+    // pub echo_speed: Float,
 }
 
 impl Scanner {
@@ -84,45 +85,22 @@ impl Scanner {
 
         // TODO: average three readings from each knob and change effect settings accordingly
         self.vol += ((self.adc.driver.read(&mut self.adc.vol).unwrap() - 128) as Float) / 3024.0;
-        self.trem_vol +=
-            (self.adc.driver.read(&mut self.adc.trem_vol).unwrap() - 128) as Float / 3024.0;
-        self.echo_vol +=
-            (self.adc.driver.read(&mut self.adc.echo_vol).unwrap() - 128) as Float / 3024.0;
-        self.trem_speed +=
-            ((self.adc.driver.read(&mut self.adc.trem_speed).unwrap() - 128) as Float / 3024.0)
-                * 15.0;
-        self.echo_speed +=
-            ((self.adc.driver.read(&mut self.adc.echo_speed).unwrap() - 128) as Float / 3024.0)
-                * 4.0
-                + 1.0;
+        // self.trem_vol +=
+        //     (self.adc.driver.read(&mut self.adc.trem_vol).unwrap() - 128) as Float / 3024.0;
+        // self.echo_vol +=
+        //     (self.adc.driver.read(&mut self.adc.echo_vol).unwrap() - 128) as Float / 3024.0;
+        // self.trem_speed +=
+        //     ((self.adc.driver.read(&mut self.adc.trem_speed).unwrap() - 128) as Float / 3024.0)
+        //         * 15.0;
+        // self.echo_speed +=
+        //     ((self.adc.driver.read(&mut self.adc.echo_speed).unwrap() - 128) as Float / 3024.0)
+        //         * 4.0
+        //         + 1.0;
 
         if self.tick_i == 0 {
             let n_ticks = 10.0;
-            self.synth
-                .lock()
-                .unwrap()
-                .set_trem_freq(self.trem_speed / n_ticks);
-            self.synth
-                .lock()
-                .unwrap()
-                .set_trem_depth(self.trem_vol / n_ticks);
-            self.synth
-                .lock()
-                .unwrap()
-                .echo
-                .set_speed(self.echo_speed / n_ticks);
-            self.synth
-                .lock()
-                .unwrap()
-                .echo
-                .set_volume(self.echo_vol / n_ticks);
             self.synth.lock().unwrap().volume = self.vol / n_ticks;
-            println!("{}", self.echo_speed);
             self.vol = 0.0;
-            self.trem_vol = 0.0;
-            self.trem_speed = 0.0;
-            self.echo_vol = 0.0;
-            self.echo_speed = 0.0;
         }
 
         self.tick_i += 1;

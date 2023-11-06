@@ -2,12 +2,12 @@ use super::echo::{ECHO_SPEED, ECHO_VOLUME};
 use super::COMPLETE_MSG;
 use crate::{
     notes::{NOTES, NOTE_NAMES},
-    synth::synth::Synth,
     Float,
 };
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};
+use synth::synth::Synth;
 
 const TREM_SPEED: Float = 0.5;
 const TREM_DEPTH: Float = 0.5;

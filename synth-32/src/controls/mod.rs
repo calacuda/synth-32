@@ -1,4 +1,4 @@
-use crate::{synth::Float, Note};
+use synth::Float;
 
 pub mod effect_conf;
 pub mod scanner;

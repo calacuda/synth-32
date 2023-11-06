@@ -1,8 +1,9 @@
 use super::COMPLETE_MSG;
-use crate::{notes::NOTES, synth::synth::Synth};
+use crate::notes::NOTES;
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};
+use synth::synth::Synth;
 
 const BEAT: f64 = 1_000_000.0;
 

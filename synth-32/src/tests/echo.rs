@@ -1,8 +1,9 @@
 use super::{CHORD, COMPLETE_MSG};
-use crate::{synth::synth::Synth, Float};
+use crate::Float;
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::info;
 use std::sync::{Arc, Mutex};
+use synth::synth::Synth;
 
 pub const ECHO_SPEED: Float = 5.0;
 pub const ECHO_VOLUME: Float = 0.9;

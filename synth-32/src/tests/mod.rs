@@ -1,7 +1,8 @@
-use crate::{synth::synth::Synth, Float};
+use crate::Float;
 use esp_idf_svc::hal::delay::FreeRtos;
 use log::*;
 use std::sync::{Arc, Mutex};
+use synth::synth::Synth;
 
 mod all_notes;
 mod arpeggio;
