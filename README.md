@@ -24,9 +24,18 @@ Bassically, each link in the add-on chain gets updated about the synth's state, 
 ## Planned Add-Ons
 
 - [ ] extra oscilators
-- [ ] extra keys (and oscilators and arpeggiator)
+- [ ] extra keys (and oscilators and envelope switching and wave form switching)
 - [ ] plotter w/ led matrix or small screen. (will plot the wave form sent to its I2S in).
 - [ ] drum synth and click-track generator (click track should be able to output to a dedicated I2S DAC so only the player can here it.)
 - [ ] drone note/chord synth (will auto repeat when note dies. will have a knob to control how long it takes to repeat the drone after it ends)
 - [ ] looper (when set to record, it will record all UART state updates send to it, then echo them back as commands via UART)
 - [ ] recorder (with line-out)
+- [ ] arpeggiator
+
+## TODOs
+
+- add envelope filter switching
+- add square waves
+- add triangle waves
+- add sawtooth waves
+- add rotary encoder to switch between sine, square, triangle, and sawtooth waves.
