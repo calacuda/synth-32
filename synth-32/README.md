@@ -8,4 +8,4 @@ This code relies on the dual cores of the esp32-s3, one is used to generate samp
 
 ## TODOs
 
-add UART command system
+- [ ] add UART command system
