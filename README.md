@@ -35,8 +35,8 @@ Bassically, each link in the add-on chain gets updated about the synth's state, 
 
 ## TODOs
 
-- add envelope filter switching
-- add square waves
-- add triangle waves
-- add sawtooth waves
-- add rotary encoder to switch between sine, square, triangle, and sawtooth waves.
+- [ ] add envelope filter switching
+- [ ] add square waves
+- [ ] add triangle waves
+- [ ] add sawtooth waves
+- [ ] add a 4 possition rotary switch to switch between sine, square, triangle, and sawtooth waves.

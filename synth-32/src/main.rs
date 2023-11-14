@@ -167,15 +167,7 @@ fn main() -> Result<()> {
 
     let _ = thread::spawn(move || {
         // use crate::tests::run_test;
-        // info!("{}", ctrl.synth.lock().unwrap().volume);
-        // ctrl.synth.lock().unwrap().volume = 1.0;
         // run_test(&ctrl.synth);
-        // ctrl.synth.lock().unwrap().echo.set_speed(0.25);
-        // ctrl.synth.lock().unwrap().echo.set_volume(0.9);
-        // ctrl.synth.lock().unwrap().set_trem_freq(3.0);
-        // ctrl.synth.lock().unwrap().set_trem_depth(0.75);
-        // ctrl.synth.lock().unwrap().tremolo(true);
-        // ctrl.synth.lock().unwrap().echo(true);
 
         loop {
             if let Err(e) = ctrl.step() {
