@@ -52,7 +52,8 @@ impl Echo {
         // self.step = ((1.0 / speed) * self.size as Float) as usize;  // works for floats greater
         // then 1.0 and lest then 5.0 when using half sample_rate size.
         let size: Float = self.size as Float;
-        self.step = (speed * size.powi(2)) as usize;
+        self.step = (speed * size.powf(2.0) * 0.5) as usize;
+        // self.step = (speed * size) as usize;
     }
 
     pub fn set_volume(&mut self, volume: Float) {
@@ -78,6 +79,15 @@ impl Echo {
     }
 
     pub fn pop(&mut self, sample: Float) -> Float {
+        // if self.on {
+        //     let echo = ((self.buffer[self.i] * self.volume) + sample) * 0.5;
+        //     self.buffer[self.i] = echo;
+        //     self.i = (self.i + 1 + self.step) % self.size;
+        //     echo
+        // } else {
+        //     sample
+        // }
+
         if self.on {
             let echo = ((self.buffer[self.i] * self.volume) + sample) * 0.5;
             self.buffer[self.i] = echo;

@@ -1,10 +1,15 @@
+use log::error;
+
 use super::echo::Echo;
 use super::trem::Tremolo;
 use super::wave_table_osc::WavetableOscillator;
 use super::Float;
 use super::N_OSCILATORS;
-use log::*;
+use crate::envelope::Envelope;
+use crate::envelope::{adbdr::ADBDREnvelope, adsr::ADSREnvelope};
+use crate::notes::PITCH_BEND;
 use std::f64::consts::PI;
+use std::ops::Deref;
 
 const DISCOUNT: Float = 1.0 / (N_OSCILATORS) as Float;
 const HALF_U16: Float = u16::MAX as Float * 0.5;
@@ -12,6 +17,7 @@ const VOLUME: Float = 1.0;
 
 pub struct Synth {
     osc_s: Vec<WavetableOscillator>, // vectors iterate faster when using iter_mut apparently
+    pub envelopes: [ADBDREnvelope; N_OSCILATORS],
     notes: [Float; N_OSCILATORS],
     tremolo: Tremolo,
     pub echo: Echo,
@@ -30,12 +36,16 @@ impl Synth {
         // let osc_s = (1..=N_OSCILATORS)
         //     .map(|i| (oscsilator.clone(), 1.0 - (0.15 * i as Float)))
         //     .collect();
+        let envelopes: [ADBDREnvelope; N_OSCILATORS] =
+            [ADBDREnvelope::new(sample_rate as Float); N_OSCILATORS];
+        // (0..N_OSCILATORS).for_each(|i| envelopes[i] = ADSREnvelope::new());
         let notes = [0.0; N_OSCILATORS];
         let tremolo = Tremolo::new(oscsilator.clone());
         let echo = Echo::new(sample_rate);
 
         Self {
             osc_s,
+            envelopes,
             notes,
             tremolo,
             echo,
@@ -58,8 +68,12 @@ impl Synth {
         // info!("playing note {note}");
 
         if let Some(i) = self.notes.iter().position(|freq| *freq == 0.0) {
+            // if let Some(i) = self.envelopes.iter().position(|env| env.available()) {
             self.notes[i] = note;
             self.osc_s[i].set_frequency(note);
+            self.envelopes[i].press();
+        } else {
+            error!("no oscilators available");
         }
     }
 
@@ -68,6 +82,7 @@ impl Synth {
         if let Some(i) = self.notes.iter().position(|freq| *freq == note) {
             self.notes[i] = 0.0;
             self.osc_s[i].set_frequency(0.0);
+            self.envelopes[i].release();
         }
     }
 
@@ -116,7 +131,7 @@ impl Synth {
         } + 1.0)
             * 0.5)
             * HALF_U16;
-        // add echo/delay here
+        // let converted = (normalized * ((self.volume + trem_volume) * 0.5)) as u16;
         let converted = (normalized * self.volume * trem_volume) as u16;
 
         (
@@ -126,31 +141,48 @@ impl Synth {
     }
 
     pub fn get_sample(&mut self) -> (u8, u8) {
-        // let mut osc_s = if self.tremolo.on {
-        //     &Vec::from(
-        //         self.osc_s
-        //             .split_last_mut()
-        //             .unwrap_or((&mut self.osc_s[0], &mut self.osc_s))
-        //             .1,
-        //     )
-        // } else {
-        //     &self.osc_s
-        // };
         let sample = self
             .osc_s
             .iter_mut()
+            .zip(self.envelopes.iter_mut())
             .enumerate()
-            .map(|(i, osc)| {
-                // println!("foo");
+            .map(|(i, (osc, env))| {
                 if !(i == (N_OSCILATORS - 1) && self.tremolo.on) {
-                    osc.get_sample()
+                    // let s = osc.get_sample();
+                    // let e = env.envelope();
+                    // // println!("{s} {e}");
+                    osc.get_sample() * env.envelope()
                 } else {
-                    // println!("zero");
                     0.0
                 }
             })
             .sum::<Float>()
             * DISCOUNT;
+        // let sample = self
+        //     .osc_s
+        //     .iter_mut()
+        //     .map(|osc| osc.get_sample())
+        //     .sum::<Float>()
+        //     * DISCOUNT;
         self.convert(sample)
+    }
+
+    pub fn pitch_bend(&mut self, amount: Float) {
+        for (i, osc) in self.osc_s.iter_mut().enumerate() {
+            let note = self.notes[i];
+
+            if note != 0.0 {
+                let next_note = if amount < 0.0 {
+                    note * PITCH_BEND.deref()
+                } else {
+                    note / PITCH_BEND.deref()
+                };
+
+                let distance = (note - next_note).abs() * amount;
+                let new_note = note - distance;
+
+                osc.set_frequency(new_note);
+            }
+        }
     }
 }

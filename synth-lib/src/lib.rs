@@ -1,6 +1,9 @@
 pub type Float = f32;
+pub type Note = Float;
 
 pub mod echo;
+pub mod envelope;
+pub mod notes;
 pub mod synth;
 pub mod trem;
 pub mod wave_table_osc;

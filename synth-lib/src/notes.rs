@@ -1,8 +1,10 @@
-use crate::Note;
+use crate::{Float, Note};
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 lazy_static! {
+    pub static ref NOTE_STEP: Float = Note::powf(2.0, 1.0 / 12.0);
+    pub static ref PITCH_BEND: Float = NOTE_STEP.deref() * 2.0;
     pub static ref NOTES: HashMap<&'static str, Note> = {
         let mut notes = HashMap::new();
         notes.insert("C0", 16.35);
