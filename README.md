@@ -16,10 +16,11 @@ Bassically, each link in the add-on chain gets updated about the synth's state, 
 
 ## Directory Overview
 
-| **Directory** | **Description**                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `/synth-32/`  | the main src code for the controls. prodused the flashable firmware.                                                                 |
-| `/synth-lib/` | Code responsible for audio synthesis and built in effects. It's in a separate folder so other add-on modules can use it more easily. |
+| **Directory** | **Description**                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/synth-32/`  | the main src code for the controls. prodused the flashable firmware.                                                                       |
+| `/synth-lib/` | Code responsible for audio synthesis and built in effects. It's in a separate folder so other add-on modules can use it more easily.       |
+| `/modules/`   | stores the code for modules. it is in a separate directory so the code can be written in other languages and/or for other microcontrollers |
 
 ## Planned Add-Ons
 
