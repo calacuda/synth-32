@@ -3,13 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; 
-    esp32 = {
-      url = "github:knarkzel/esp32";
-      inputs.nixpkgs.follows = "nixpkgs";
-    }; 
+    # esp32 = {
+    #   url = "github:knarkzel/esp32";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # }; 
   };
 
-  outputs = { self, nixpkgs, esp32, ... }:
+  outputs = { self, nixpkgs, ... }:
     let
       # system should match the system you are running on
       inherit (nixpkgs);
@@ -75,23 +75,31 @@
             pkgs.gdb
             pkgs.openssl
             pkgs.pkg-config
-            # cargo
-            # rustc
             pkgs.rust-analyzer
             pkgs.rustfmt
             pkgs.clippy
             pkgs.rusty-man
             pkgs.esptool
+            pkgs.podman
+            pkgs.rustc
+            pkgs.cargo
             pkgs.cargo-espmonitor
             pkgs.cargo-espflash
-            pkgs.cargo-generate
-            pkgs.espup
+            # pkgs.cargo-generate
+            # pkgs.espup
+            # pkgs.writeShellApplication {
+            #   name = "cargo";
+            #   runtimeInputs = [ pkgs.ripgrep ];
+            #   text = ''
+            #     #!${pkgs.stdenv.shell}
+            #     ./.cargo/cargo $@
+            #   '';
+            #   checkPhase = "${pkgs.stdenv.shellDryRun} $target";
+            # }
           ];
           shellHook = ''
             IN_NIX_DEV="yes"
-            ${pkgs.espup}/bin/espup update
-            . $HOME/export-esp.sh
-          '';
-        }; 
-    };
+          ''; 
+        };
+    }; 
 }

@@ -3,5 +3,5 @@
 /target
 /Cargo.lock
 .direnv
-flake.lock
+# flake.lock
 *.bak
