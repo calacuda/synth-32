@@ -71,6 +71,7 @@ impl Scanner {
             self.columns[col_i].set_high()?;
 
             for row_i in 0..self.rows.len() {
+                // println!("({row_i}/{col_i}) => {}", self.rows[row_i].is_high());
                 // play/stop note
                 if self.rows[row_i].is_high() && !self.pressed.contains_key(&(row_i, col_i)) {
                     // info!("key pressed at location: ({row_i}, {col_i}). [(row_i, col_i)]");
@@ -208,15 +209,17 @@ impl Scanner {
     }
 
     fn play_note(&mut self, r: usize, c: usize) {
-        // if !self.pressed.get(&(r, c)).is_none() {
-        //     return;
-        // }
+        if self.pressed.get(&(r, c)).is_some() {
+            return;
+        }
 
         if let Some((i, Some(note))) = self.get_freq(r, c) {
-            // info!("{note}");
+            info!("{note}");
             let note = note.clone();
             self.synth.lock().unwrap().play(note);
             self.pressed.insert((r, c), i);
+        } else {
+            info!("not note for ({r}/{c})");
         }
     }
 
@@ -241,6 +244,8 @@ impl Scanner {
         }
 
         // self.buttons.octave_up.set_pull(Pull::Down)?;
+
+        info!("pin pull set succefully");
 
         Ok(())
     }
