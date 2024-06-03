@@ -1,0 +1,23 @@
+alias b := build
+alias r := run
+
+default:
+  just --list
+
+build:
+  podman run --uidmap 1000:0:1 --uidmap 0:1:1000 --group-add dialout --volume ../:/home/esp/project:rw -it docker.io/espressif/idf-rust:esp32s3_latest bash project/synth-32/.bin/_cargo
+
+release:
+  podman run --uidmap 1000:0:1 --uidmap 0:1:1000 --group-add dialout --volume ../:/home/esp/project:rw -it docker.io/espressif/idf-rust:esp32s3_latest bash project/synth-32/.bin/_cargo "--release"
+
+flash BIN:
+  espflash flash target/xtensa-esp32s3-espidf/{{BIN}}/synth-32
+
+monitor:
+  espflash monitor
+
+run BIN: 
+  # build
+  just flash {{BIN}}
+  just monitor
+  

@@ -85,6 +85,7 @@
             pkgs.cargo
             pkgs.cargo-espmonitor
             pkgs.cargo-espflash
+            pkgs.just
             # pkgs.cargo-generate
             # pkgs.espup
             # pkgs.writeShellApplication {
