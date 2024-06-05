@@ -1,0 +1,16 @@
+build BIN:
+  podman run --uidmap 1000:0:1 --uidmap 0:1:1000 --group-add dialout --volume ../../:/home/esp/project:rw -it docker.io/espressif/idf-rust:esp32_latest bash project/modules/oscillator/.bin/_cargo "build" "--bin" {{BIN}} 
+
+release BIN:
+  podman run --uidmap 1000:0:1 --uidmap 0:1:1000 --group-add dialout --volume ../../:/home/esp/project:rw -it docker.io/espressif/idf-rust:esp32_latest bash project/modules/oscillator/.bin/_cargo "build" "--release" "--bin" {{BIN}}
+
+check:
+    podman run --uidmap 1000:0:1 --uidmap 0:1:1000 --group-add dialout --volume ../../:/home/esp/project:rw -it docker.io/espressif/idf-rust:esp32_latest bash project/modules/oscillator/.bin/_cargo "check"
+
+flash BIN:
+  espflash flash target/xtensa-esp32-espidf/{{BIN}}/synth-32
+
+monitor:
+  espflash monitor
+
+
