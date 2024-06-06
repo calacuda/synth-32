@@ -10,5 +10,8 @@ esp32s3 = []
 
 [dependencies]
 anyhow = "1.0.75"
+fundsp = { version = "0.17.1", default-features = false, git = "https://github.com/calacuda/fundsp"}
+generic-array = "0.14.7"
 lazy_static = "1.4.0"
 log = "0.4.20"
+numeric-array = "0.5.2"

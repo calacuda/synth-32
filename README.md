@@ -10,15 +10,15 @@ An ESP32-s3 powered musical synthisiser with a plugin/module/add-on system and t
 
 ## Add-on System
 
-This synth supports plugging in add-ons (also called "peripheral" or "plugins" else where in the docs). These add-ons plug into each other then back into the synth in an chain. This chain receives state change updates via UART, and audio samples via I2S in. -- This information get propegated down the chain. Meaing each link gets this information from the previous link. -- The link will then output the sample it generated or modified, via I2S. (If the sample was unmodified, then the link will simple echo the sample transparently to the next link in the add-on chain.) The links can also send commands to to the synth to change the state, play/stop notes, etc.
+This synth supports plugging in add-ons (also called "peripheral" or "plugins" else where in the docs). These add-ons plug into each other then back into the synth in an chain. This chain receives state change updates via UART, and audio samples via I2S in. -- This information get propegated down the chain. Meaning each link gets this information from the previous link. -- The link will then output the sample it generated or modified, via I2S. (If the sample was unmodified, then the link will simple echo the sample transparently to the next link in the add-on chain.) The links can also send commands to to the synth to change the state, play/stop notes, etc.
 
-Bassically, each link in the add-on chain gets updated about the synth's state, can modify the samples it generates, generate its own samples, and/or send controls back to the synth. The consequence of this however, is that the synth will no longer output its samples directly because they're redirected to the add-on chain. Because of this, it is _crutial_ that each add-on in the chain either echos its I2S input to its I2S output, or, that it take its generated sample and merges it with the input sample.
+Basically, each link in the add-on chain gets updated about the synth's state, can modify the samples it generates, generate its own samples, and/or send controls back to the synth. The consequence of this however, is that the synth will no longer output its samples directly because they're redirected to the add-on chain. Because of this, it is crucial_ that each add-on in the chain either echos its I2S input to its I2S output, or, that it take its generated sample and merges it with the input sample.
 
 ## Directory Overview
 
 | **Directory** | **Description**                                                                                                                            |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/synth-32/`  | the main src code for the controls. prodused the flashable firmware.                                                                       |
+| `/synth-32/`  | the main src code for the controls. produces flashable firmware.                                                                       |
 | `/synth-lib/` | Code responsible for audio synthesis and built in effects. It's in a separate folder so other add-on modules can use it more easily.       |
 | `/modules/`   | stores the code for modules. it is in a separate directory so the code can be written in other languages and/or for other microcontrollers |
 
@@ -35,7 +35,7 @@ Bassically, each link in the add-on chain gets updated about the synth's state, 
 
 ## TODOs
 
-- [ ] add envelope filter switching
+- [x] add envelope filter switching
 - [ ] add square waves
 - [ ] add triangle waves
 - [ ] add sawtooth waves

@@ -75,14 +75,14 @@
             pkgs.gdb
             pkgs.openssl
             pkgs.pkg-config
-            pkgs.rust-analyzer
-            pkgs.rustfmt
+            # pkgs.rust-analyzer
+            # pkgs.rustfmt
             pkgs.clippy
             pkgs.rusty-man
             pkgs.esptool
             pkgs.podman
-            pkgs.rustc
-            pkgs.cargo
+            # pkgs.rustc
+            # pkgs.cargo
             pkgs.cargo-espmonitor
             pkgs.cargo-espflash
             pkgs.just

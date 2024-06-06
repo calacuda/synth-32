@@ -2,6 +2,7 @@ use super::Float;
 
 pub mod adbdr;
 pub mod adsr;
+pub mod adsr_new;
 
 // enum KeyState {
 //     Pressed,

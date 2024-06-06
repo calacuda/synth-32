@@ -4,8 +4,6 @@ use esp_idf_svc::hal::delay::{BLOCK, NON_BLOCK};
 use esp_idf_svc::hal::i2s::{config, I2sDriver};
 use esp_idf_svc::hal::peripherals;
 use esp_idf_svc::hal::task::thread::ThreadSpawnConfiguration;
-use esp_idf_svc::hal::uart::config::Config;
-use esp_idf_svc::hal::uart::UartDriver;
 use esp_idf_svc::hal::{adc, gpio::*};
 use esp_idf_svc::io::Read;
 use esp_idf_svc::hal::i2s::config::Role;
@@ -81,28 +79,58 @@ fn main() -> Result<()> {
     
     info!("building lowpass filter");
     let mut filter = synth::lowpass::LowPassFilter::new();
+    // filter.set_cutoff(0.15);
+    // filter.set_resonance(0.25);
+    
+    let mut osc = synth::osc::Oscillator::new(64, SAMPLE_RATE);
+    osc.set_note(261.63);
 
     info!("starting play loop");
     // TODO: make this a generic function that takes i2s_in, i2s_out, i2c_in, and a closure of how
     // to generate new samples.
 
-    let (tx, rx) = crossbeam::channel::bounded(1);
+    // let (tx, rx) = crossbeam::channel::bounded(1);
+    // let sample = Arc::new(Mutex::new(0.0));
+    // let sample_clone = sample.clone();
 
-    // let mut in_sample = 0.0;
+    // ThreadSpawnConfiguration {
+    //     name: Some("audio-getter\0".as_bytes()),
+    //     pin_to_core: Some(Core::Core1),
+    //     ..Default::default()
+    // }
+    // .set()?;
 
-    spawn(
-        move || {
-            loop {
-                let mut in_bytes = [0; 8];
-                if let Err(e) = i2s_in.read(&mut in_bytes, BLOCK) {
-                    error!("failed to read i2S in. {e}");
-                }
-                let in_sample_bytes: [u8; 4] = [in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]];
-                let in_sample = Float::from_le_bytes(in_sample_bytes);
-                tx.send(in_sample);
-            }
-        }
-    );
+    // spawn(
+    //     move || {
+    //         let mut osc = synth::osc::Oscillator::new(64, SAMPLE_RATE);
+    //         osc.set_note(261.63);
+    //         
+    //         loop {
+    //             let mut s = sample_clone.lock().unwrap();
+    //             // *s = filter.get_sample(in_sample);
+    //             *s = osc.get_sample();
+    //         }
+    //     }
+    // );
+
+    // spawn(
+    //     move || {
+    //         loop {
+    //             let mut in_bytes = [0; 4];
+    //
+    //             if let Err(e) = i2s_in.read(&mut in_bytes, BLOCK) {
+    //                 error!("failed to read i2S in. {e}");
+    //             }
+    //
+    //             let in_sample_bytes: [u8; 4] = [in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]];
+    //             let in_sample = Float::from_le_bytes(in_sample_bytes);
+    //             // info!("in_sample :  {in_sample}");
+    //             let mut s = sample_clone.lock().unwrap();
+    //             // *s = filter.get_sample(in_sample);
+    //             *s = in_sample;
+    //         }
+    //     }
+    // );
 
     // spawn(
     //     move || {
@@ -138,11 +166,27 @@ fn main() -> Result<()> {
         // filter.take_sample(in_sample);
         // TODO: check for new i2c control data
 
-        let in_sample = rx.recv().unwrap_or(0.0);
+        // let in_sample = rx.recv().unwrap_or(0.0);
+        // let sample = rx.recv().unwrap_or(0.0).to_le_bytes();
+        // let sample = {
+        //     let s = sample.lock().unwrap();
+        //     // info!("s :  {s}");
+        //     filter.get_sample(*s).to_le_bytes()
+        //     // (*s).to_le_bytes()
+        // };
+        // let sample = filter.get_sample(*sample.lock().unwrap()).to_le_bytes();
+        // let sample = {
+        //     filter.get_sample(*sample.lock().unwrap()).to_le_bytes()
+        // };
+        let sample = {
+            filter.get_sample(osc.get_sample()).to_le_bytes()
+        };
+        // let sample = sample.lock().unwrap().to_le_bytes();
+        // info!("sample => {sample:?}");
         // let filter_sample = filter.get_sample(in_sample);
         // generate sample
         // let sample = filter_sample.to_le_bytes();
-        let sample = in_sample.to_le_bytes();
+        // let sample = in_sample.to_le_bytes();
         // send sample
         i2s_out.write(&[sample[0], sample[1], sample[2], sample[3], sample[0], sample[1], sample[2], sample[3]], BLOCK)?;
     }

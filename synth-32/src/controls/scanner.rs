@@ -9,7 +9,8 @@ use esp_idf_svc::hal::{
     gpio::*,
 };
 use log::*;
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 use synth::envelope::Envelope;
 use synth::notes::{NOTES, NOTE_NAMES};
@@ -38,7 +39,7 @@ pub struct Buttons {
 }
 
 pub struct Scanner {
-    pub pressed: HashMap<(usize, usize), usize>, //  [[Option<usize>; 8]; 4],
+    pub pressed: BTreeMap<(usize, usize), usize>, //  [[Option<usize>; 8]; 4],
     pub octave: Octave,
     pub tick_i: u8,
     pub trem_conf: GenEffectConf,
@@ -66,6 +67,7 @@ impl Scanner {
     pub fn step(&mut self) -> Result<()> {
         self.octave_up();
         self.octave_down();
+        // info!("finding pressed keys");
         // figure out what keys were pressed.
         for col_i in 0..self.columns.len() {
             self.columns[col_i].set_high()?;
@@ -83,6 +85,7 @@ impl Scanner {
 
             self.columns[col_i].set_low()?;
         }
+        // info!("found pressed keys");
 
         // read the knob position and average it.
         self.pitch += self.adc.driver1.read(&mut self.adc.pitch)? as i32;
@@ -92,18 +95,21 @@ impl Scanner {
         self.attack = (self.attack + self.normalize_reading(attack_reading)) * 0.5;
         let decay_reading = self.adc.driver1.read(&mut self.adc.decay)?;
         self.decay = (self.decay + self.normalize_reading(decay_reading)) * 0.5;
-        let trem_vol_reading = self.adc.driver2.read(&mut self.adc.trem_vol)?;
-        self.trem_conf.volume =
-            (self.trem_conf.volume + self.normalize_big_reading(trem_vol_reading)) * 0.5;
-        let trem_speed_reading = self.adc.driver2.read(&mut self.adc.trem_speed)?;
-        self.trem_conf.speed =
-            (self.trem_conf.speed + self.normalize_big_reading(trem_speed_reading)) * 0.5;
-        let echo_vol_reading = self.adc.driver2.read(&mut self.adc.echo_vol)?;
-        self.echo_conf.volume =
-            (self.echo_conf.volume + self.normalize_big_reading(echo_vol_reading)) * 0.5;
-        let echo_speed_reading = self.adc.driver2.read(&mut self.adc.echo_speed)?;
-        self.echo_conf.speed =
-            (self.echo_conf.speed + self.normalize_big_reading(echo_speed_reading)) * 0.5;
+
+        // let trem_vol_reading = self.adc.driver2.read(&mut self.adc.trem_vol)?;
+        // self.trem_conf.volume =
+        //     (self.trem_conf.volume + self.normalize_big_reading(trem_vol_reading)) * 0.5;
+        // let trem_speed_reading = self.adc.driver2.read(&mut self.adc.trem_speed)?;
+        // self.trem_conf.speed =
+        //     (self.trem_conf.speed + self.normalize_big_reading(trem_speed_reading)) * 0.5;
+        // let echo_vol_reading = self.adc.driver2.read(&mut self.adc.echo_vol)?;
+        // self.echo_conf.volume =
+        //     (self.echo_conf.volume + self.normalize_big_reading(echo_vol_reading)) * 0.5;
+        // let echo_speed_reading = self.adc.driver2.read(&mut self.adc.echo_speed)?;
+        // self.echo_conf.speed =
+        //     (self.echo_conf.speed + self.normalize_big_reading(echo_speed_reading)) * 0.5;
+
+        // info!("knobs read");
 
         if self.tick_i == (N_TICKS - 1) {
             let bend = ((self.pitch / N_TICKS as i32) - 962) - 670;
@@ -116,56 +122,58 @@ impl Scanner {
             }
 
             self.synth.lock().unwrap().volume = self.vol;
-            self.synth
-                .lock()
-                .unwrap()
-                .set_trem_freq(self.trem_conf.speed * 11.0);
-            self.synth
-                .lock()
-                .unwrap()
-                .set_trem_depth(self.trem_conf.volume);
-            self.synth
-                .lock()
-                .unwrap()
-                .echo
-                .set_speed((self.echo_conf.speed * 100.0).round() / 100.0);
-            self.synth
-                .lock()
-                .unwrap()
-                .echo
-                .set_volume(self.echo_conf.volume);
+            // self.synth
+            //     .lock()
+            //     .unwrap()
+            //     .set_trem_freq(self.trem_conf.speed * 11.0);
+            // self.synth
+            //     .lock()
+            //     .unwrap()
+            //     .set_trem_depth(self.trem_conf.volume);
+            // self.synth
+            //     .lock()
+            //     .unwrap()
+            //     .echo
+            //     .set_speed((self.echo_conf.speed * 100.0).round() / 100.0);
+            // self.synth
+            //     .lock()
+            //     .unwrap()
+            //     .echo
+            //     .set_volume(self.echo_conf.volume);
             self.set_attack();
             self.set_decay();
 
             // set effects
-            if self.buttons.tremolo.is_low() {
-                self.synth.lock().unwrap().tremolo(true);
-            } else {
-                self.synth.lock().unwrap().tremolo(false);
-            }
+            // if self.buttons.tremolo.is_low() {
+            //     self.synth.lock().unwrap().tremolo(true);
+            // } else {
+            //     self.synth.lock().unwrap().tremolo(false);
+            // }
 
-            if self.buttons.echo.is_low() && !self.echo_conf.pressed {
-                // info!("echo on");
-                // info!("{}", self.synth.lock().unwrap().echo.);
-                self.synth.lock().unwrap().echo(true);
-                self.echo_conf.pressed = true;
-            } else if self.buttons.echo.is_high() && self.echo_conf.pressed {
-                self.synth.lock().unwrap().echo(false);
-                self.echo_conf.pressed = false;
-            }
+            // if self.buttons.echo.is_low() && !self.echo_conf.pressed {
+            //     // info!("echo on");
+            //     // info!("{}", self.synth.lock().unwrap().echo.);
+            //     self.synth.lock().unwrap().echo(true);
+            //     self.echo_conf.pressed = true;
+            // } else if self.buttons.echo.is_high() && self.echo_conf.pressed {
+            //     self.synth.lock().unwrap().echo(false);
+            //     self.echo_conf.pressed = false;
+            // }
 
             // reset pitch
             self.pitch = 0;
             self.vol = 0.0;
-            self.trem_conf.volume = 0.0;
-            self.trem_conf.speed = 0.0;
-            self.echo_conf.volume = 0.0;
-            self.echo_conf.speed = 0.0;
+            // self.trem_conf.volume = 0.0;
+            // self.trem_conf.speed = 0.0;
+            // self.echo_conf.volume = 0.0;
+            // self.echo_conf.speed = 0.0;
         }
+
+        // info!("incrementing tick_i");
 
         self.tick_i += 1;
         self.tick_i %= N_TICKS;
-        FreeRtos::delay_us(1);
+        FreeRtos::delay_us(10);
 
         Ok(())
     }
@@ -245,7 +253,7 @@ impl Scanner {
 
         // self.buttons.octave_up.set_pull(Pull::Down)?;
 
-        info!("pin pull set succefully");
+        info!("pin pull set successfully");
 
         Ok(())
     }
@@ -257,7 +265,7 @@ impl Scanner {
             .envelopes
             .iter_mut()
             .for_each(|env| {
-                env.set_param_1(self.attack);
+                env.set_attack(self.attack);
             });
         self.attack = 0.0;
     }
@@ -269,7 +277,7 @@ impl Scanner {
             .envelopes
             .iter_mut()
             .for_each(|env| {
-                env.set_param_2(self.decay);
+                env.set_decay(self.decay);
             });
         self.decay = 0.0;
     }
@@ -290,15 +298,18 @@ impl Scanner {
         self.set_pull()?;
 
         // set initial pitch
+        info!("setting modwheel base position");
         self.pitch = self.adc.driver1.read(&mut self.adc.pitch).unwrap() as i32;
 
         // set initial volume
+        info!("setting volume");
         let vol = self.adc.driver1.read(&mut self.adc.vol)?;
         self.vol = self.normalize_reading(vol);
         self.synth.lock().unwrap().volume = self.vol;
 
         // TODO: set initial envelope filter parameters (hardcoded values for testing).
-
+        
+        info!("init done");
         Ok(())
     }
 }
