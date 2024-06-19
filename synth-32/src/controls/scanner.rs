@@ -173,7 +173,7 @@ impl Scanner {
 
         self.tick_i += 1;
         self.tick_i %= N_TICKS;
-        FreeRtos::delay_us(10);
+        // FreeRtos::delay_us(10);
 
         Ok(())
     }
@@ -262,10 +262,10 @@ impl Scanner {
         self.synth
             .lock()
             .unwrap()
-            .envelopes
+            .osc_s
             .iter_mut()
-            .for_each(|env| {
-                env.set_attack(self.attack);
+            .for_each(|osc| {
+                osc.env.set_attack(self.attack);
             });
         self.attack = 0.0;
     }
@@ -274,10 +274,10 @@ impl Scanner {
         self.synth
             .lock()
             .unwrap()
-            .envelopes
+            .osc_s
             .iter_mut()
-            .for_each(|env| {
-                env.set_decay(self.decay);
+            .for_each(|osc| {
+                osc.env.set_decay(self.decay);
             });
         self.decay = 0.0;
     }

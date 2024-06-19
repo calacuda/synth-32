@@ -2,7 +2,7 @@ use crate::Float;
 use serde::{Deserialize, Serialize};
 
 /// the uart command struct that is received from the pico
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct UartCommand {
     /// what kind of data is being accessed/modified by a command
     pub entity: Entity,
@@ -13,7 +13,7 @@ pub struct UartCommand {
 }
 
 /// what kind of data is being accessed/modified by a command
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum Entity {
     Volume,
     EnvAttack,

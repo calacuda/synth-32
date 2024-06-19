@@ -110,6 +110,7 @@ use generic_array::arr;
 
 type U1 = numeric_array::typenum::U1;
 
+#[derive(Clone)]
 pub struct LowPassFilter {
     cutoff: Float,
     base_cutoff: Float,
@@ -126,7 +127,7 @@ impl LowPassFilter {
         // let mut filter = Biquad::new();
         // filter.set_coefs(low_pass_settings);
         let start_cutoff = 3_000.0;
-        let start_res = 0.5;
+        let start_res = 0.0;
         let filter = Moog::new(SAMPLE_RATE as f64, start_cutoff, start_res);
 
         Self {

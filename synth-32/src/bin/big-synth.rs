@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use synth::{synth::Synth, Float};
 use synth_32::controls;
-use synth_32::tests;
+// use synth_32::tests;
 pub use synth_32::SAMPLE_RATE;
 
 use crate::controls::effect_conf::GenEffectConf;
@@ -50,13 +50,13 @@ fn main() -> Result<()> {
     info!("peripherals acquired...");
 
     // make and init i2s
-    let config = config::StdConfig::philips(SAMPLE_RATE, config::DataBitWidth::Bits32);
+    // let config = config::StdConfig::philips(SAMPLE_RATE, config::DataBitWidth::Bits32);
 
     // if no peripherals are detected send data directly to the built in DAC
     info!("creating I2S output");
     let mut i2s_out = I2sDriver::new_std_tx(
             peripherals.i2s0,
-            &config,
+            &config::StdConfig::philips(SAMPLE_RATE, config::DataBitWidth::Bits32),
             pins.gpio12,              // bclk
             pins.gpio13,              // d-out
             Option::<AnyIOPin>::None, // mclk
@@ -124,27 +124,30 @@ fn main() -> Result<()> {
     // };
 
     // ctrl.init()?;
-    let ctrl = uart::UartCtrlr::new(peripherals.uart1, (pins.gpio1, pins.gpio2))?;
+    let mut ctrl = uart::UartCtrlr::new(peripherals.uart1, (pins.gpio0, pins.gpio1), peripherals.uart2, (pins.gpio5, pins.gpio4))?;
 
+    info!("cloning synth struct...");
     let synth = ctrl.synth.clone();
+    info!("cloning synth struct.");
 
-    // ThreadSpawnConfiguration {
-    //     name: Some("audio-playback\0".as_bytes()),
-    //     pin_to_core: Some(Core::Core1),
-    //     ..Default::default()
-    // }
-    // .set()?;
-
-    // thread::spawn(move || 
-    loop {
-        let sample = synth.lock().unwrap().get_sample();
-
-        // info!("{sample:?}");
-        if let Err(why) = i2s_out.write(&[sample[0], sample[1], sample[2], sample[3], sample[0], sample[1], sample[2], sample[3]], BLOCK) {
-            error!("could not send data bc {why}");
-        }
+    ThreadSpawnConfiguration {
+        name: Some("audio-playback\0".as_bytes()),
+        pin_to_core: Some(Core::Core1),
+        ..Default::default()
     }
-    // );
+    .set()?;
+
+    thread::spawn(move || 
+        loop {
+            let sample = synth.lock().unwrap().get_sample();
+
+            // info!("{sample:?}");
+            if let Err(why) = i2s_out.write(&[sample[0], sample[1], sample[2], sample[3], sample[0], sample[1], sample[2], sample[3]], BLOCK) {
+            // if let Err(why) = i2s_out.write(&[sample.0, sample.1, sample.0, sample.1], BLOCK) {
+                error!("could not send data bc {why}");
+            }
+        }
+    );
 
     // ThreadSpawnConfiguration {
     //     name: Some("\0".as_bytes()),
@@ -154,18 +157,15 @@ fn main() -> Result<()> {
     // .set()?;
 
     // let _ = thread::spawn(move || {
-    //     // use crate::tests::run_test;
-    //     // run_test(&ctrl.synth);
-    //
-    //     loop {
-    //         if let Err(e) = ctrl.step() {
-    //             error!("controller step failed with error: {e}");
-    //         }
-    //         // if let Err(e) = read_command(&mut com, &mut ctrl) {
-    //         //     error!("command reading failed with error {e}");
-    //         // }
-    //         // FreeRtos::delay_us(1);
-    //     }
+    loop {
+        if let Err(e) = ctrl.step() {
+            error!("controller step failed with error: {e}");
+        }
+
+        if let Err(e) = ctrl.step_2() {
+            error!("controller step_2 failed with error: {e}");
+        }
+    }
     // })
     // .join();
 
