@@ -1,12 +1,16 @@
 # Synth-32.rs
 
-An ESP32-s3 powered musical synthisiser with a plugin/module/add-on system and the ability to extend the keyboard while increacing polyphony.
+An ESP32-s3 powered musical wavetable synthisiser with a plugin/module/add-on system and the ability to extend the keyboard while increacing polyphony.
 
 ## Key Features
 
 - Add-On Modules to add effects, oscilators, controls, or even more keys/extra hardware, by plugging addon cards into the I2S in/out and UART. more [here](#add-on-system)
 - built in tremolo effect
 - built in echo effect
+- wavetable based synthesis
+- 7 note polyphony
+- 48 kHz samplerate
+- a lowpass filter based on the [Moog Ladder filter](https://en.wikipedia.org/wiki/Moog_synthesizer)
 
 ## Add-on System
 
@@ -18,9 +22,10 @@ Basically, each link in the add-on chain gets updated about the synth's state, c
 
 | **Directory** | **Description**                                                                                                                            |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/synth-32/`  | the main src code for the controls. produces flashable firmware.                                                                       |
+| `/synth-32/`  | the main src code for the controls. produces flashable firmware. contains two binaries, `big-synth.rs` & `small-synth.rs` the former is the main synth. the latter is the legacy code for the test prototype. |
 | `/synth-lib/` | Code responsible for audio synthesis and built in effects. It's in a separate folder so other add-on modules can use it more easily.       |
 | `/modules/`   | stores the code for modules. it is in a separate directory so the code can be written in other languages and/or for other microcontrollers |
+| `/big-synth-contoller/` | store the code for reading the keyboard matrix, scanning the buttons, then sendingn that data to the synth. |
 
 ## Planned Add-Ons
 
@@ -35,8 +40,9 @@ Basically, each link in the add-on chain gets updated about the synth's state, c
 
 ## TODOs
 
-- [x] add envelope filter switching
+- [ ] update readme & add pictures/audio recordings 
 - [ ] add square waves
 - [ ] add triangle waves
 - [ ] add sawtooth waves
 - [ ] add a 4 position rotary switch to switch between sine, square, triangle, and sawtooth waves.
+- [ ] add a way to read wavetables from an SD card.
