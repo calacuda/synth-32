@@ -40,7 +40,12 @@ Basically, each link in the add-on chain gets updated about the synth's state, c
 
 ## TODOs
 
+- [ ] clean up code
+    - [ ] remove dead code
+    - [ ] remove old commented out code
+    - [ ] fix cargo warnings
 - [ ] update readme & add pictures/audio recordings 
+- [ ] increase sample rate (if possible)
 - [ ] add square waves
 - [ ] add triangle waves
 - [ ] add sawtooth waves
